@@ -241,7 +241,21 @@ agreement between the sampled and corrected native seeds. If a solve cannot be
 verified, ordinary spread must satisfy the configured accuracy threshold.
 Correction is used only for single-bullet weapons when the server's
 `sv_usercmd_custom_random_seed` boolean is explicitly readable as disabled.
-The reader validates its native type and reads one byte, so union padding and
+The prediction also verifies the seed and target hitgroup after reconstructing
+the final command's physical angle with recoil. A changed seed or failed
+prediction falls back to the configured ordinary hit-chance check.
+
+**Combat > Rage > Firing > Spread prediction marker** shows both aiming modes.
+With a known seed, a green marker shows the next bullet's first contact using
+the native spread sample and a range-limited world ray. A compensated shot is
+labeled **Compensated contact**. With a private/unavailable seed or a shotgun,
+an amber ring shows the maximum spread envelope at the center ray's contact
+distance. That ring is uncertainty, not an exact impact or a penetration path.
+The marker also works with ragebot disabled and does not fire or change aim by
+itself. It hides when accuracy/timing data is invalid, the player or weapon
+changes, gameplay loses focus, or its command snapshot expires.
+
+The server-setting reader validates its native type and reads one byte, so union padding and
 the game's floating-point denormal settings cannot change that decision.
 Default servers add a private seed, so the adapter retains ordinary spread
 there and reports this limitation. Unknown server state also keeps ordinary

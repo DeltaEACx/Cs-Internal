@@ -396,6 +396,39 @@ namespace
               "Iterative correction clamped an unrepresentable physical angle");
     }
 
+    void ShotPrediction()
+    {
+        const Vec3 angle{12,179,37};
+        const Vec2 offset{.04f,-.025f};
+        unsigned hashes{},samples{};
+        const auto seed=[&](Vec3 supplied,int tick)->std::optional<std::uint32_t>{
+            ++hashes;
+            Check(Difference(supplied,angle)==0 && tick==1200,"Predictor changed the physical angles or shot tick");
+            return 0;
+        };
+        const auto sample=[&](std::uint32_t number)->std::optional<Vec2>{
+            ++samples; Check(number==0,"Predictor discarded the valid zero seed"); return offset;
+        };
+        const auto prediction=hvh_math::PredictShot(angle,1200,seed,sample);
+        Check(prediction && prediction->seed==0 && prediction->tick==1200 && hashes==1 && samples==1,
+              "A known shot was not predicted with one native hash and sample");
+        Check(Difference(prediction->direction,IndependentPellet(angle,offset))<1e-7,
+              "Predicted direction disagrees with an independent pellet rotation");
+        const auto missing=[](Vec3,int)->std::optional<std::uint32_t>{return {};};
+        Check(!hvh_math::PredictShot(angle,1200,missing,sample) && samples==1,
+              "Missing seed was replaced by zero or reached the sampler");
+        const auto zero=[](Vec3,int)->std::optional<std::uint32_t>{return 0;};
+        const auto malformed=[](std::uint32_t)->std::optional<Vec2>{return Vec2{NAN,0};};
+        Check(!hvh_math::PredictShot(angle,1200,zero,malformed),"Malformed sample became an exact predicted ray");
+        Check(!hvh_math::PredictShot({NAN,0,0},1200,seed,sample) &&
+              !hvh_math::PredictShot(angle,-1,seed,sample) && hashes==1,
+              "Invalid prediction inputs reached native callbacks");
+        const auto corrected=hvh_math::FindSpreadPredictionIterative({10,20,0},1200,zero,
+            [&](std::uint32_t)->std::optional<Vec2>{return offset;});
+        Check(corrected && Difference(corrected->direction,IndependentPellet({10,20,0},{}))<3e-7,
+              "Compensation did not return its verified final predicted ray");
+    }
+
     void AntiAimAngles()
     {
         using namespace hvh_antiaim;
@@ -791,6 +824,7 @@ int main()
         SpreadGeometry();
         SpreadSeedSearch();
         IterativeSpreadSeedSearch();
+        ShotPrediction();
         AntiAimAngles();
         TargetRelativeBackward();
         RecoilAndSpreadToggles();

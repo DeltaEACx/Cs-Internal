@@ -48,6 +48,20 @@ callbacks, nonfinite samples, seed mismatches and pitch corrections requiring
 clamping fail. The command writer must preserve the solved roll. One correction
 aligns the sampled pellet; it does not collapse a multi-pellet weapon's spread.
 
+`PredictShot` returns the physical angles, native seed, shot tick, sampled spread,
+and normalized bullet direction. Its result is checked against an independently
+rotated pellet, including roll and a valid zero seed. `FindSpreadPredictionIterative`
+adds these same details to the bounded correction solver. The production scan
+reconstructs command-plus-recoil angles and checks the final seed and first
+target hitgroup before treating the shot as compensated. Native scan tests cover
+a seed changing at this last check and the ordinary hit-chance fallback.
+
+`spread_prediction_regression` runs the production overlay in a headless ImGui
+context: green exact contact, amber uncertainty envelope, failed rays, expired
+snapshots, player/weapon changes, and world shutdown. Rendering does not trace.
+The native ray tests separately check range endpoints, first contacts, malformed
+endpoints, all-solid/faulted traces, and weapon replacement during the query.
+
 `ShotAim(desired,punch,recoilCorrection)` chooses the physical shot direction
 before spread solving. With recoil correction disabled, it adds native punch so
 the normal recoil effect remains. `RemovePunch(corrected,punch)` always removes

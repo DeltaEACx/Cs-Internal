@@ -233,14 +233,37 @@ namespace hvh_math
         return corrected;
     }
 
+    struct PredictedShot
+    {
+        Vec3 angles{}, direction{};
+        Vec2 spread{};
+        std::uint32_t seed{};
+        int tick{};
+    };
+
+    // The caller must first establish that the server's seed is predictable.
+    // Seed zero is valid; missing seed/sample data never becomes zero spread.
+    template<class Seed, class Sample>
+    std::optional<PredictedShot> PredictShot(Vec3 physicalAngles, int tick, Seed&& seed, Sample&& sample)
+    {
+        if (!detail::Finite(physicalAngles) || tick < 0) return {};
+        const auto number = seed(physicalAngles, tick);
+        if (!number) return {};
+        const auto offset = sample(*number);
+        if (!offset) return {};
+        const auto direction = ShotDirection(physicalAngles, *offset);
+        if (!direction) return {};
+        return PredictedShot{physicalAngles, *direction, *offset, *number, tick};
+    }
+
     // Try only seed-consistent fixed points, without assumptions about native
     // seed quantization. Each mismatch follows the seed of the corrected angle;
     // cycles, missing native data, and exhaustion return no solution. At most
     // attempts samples and attempts+1 seed calls are made. The caller can impose
     // a shared native-call budget through these callbacks.
     template<class Seed, class Sample>
-    std::optional<Vec3> FindSpreadCorrectionIterative(Vec3 desiredAim, int tick, Seed&& seed, Sample&& sample,
-                                                      int attempts = 8)
+    std::optional<PredictedShot> FindSpreadPredictionIterative(Vec3 desiredAim, int tick, Seed&& seed, Sample&& sample,
+                                                             int attempts = 8)
     {
         if (!detail::Finite(desiredAim) || desiredAim.x < -89 || desiredAim.x > 89 ||
             tick < 0 || attempts <= 0 || attempts > 32) return {};
@@ -260,10 +283,23 @@ namespace hvh_math
             if (!corrected) return {};
             const auto correctedSeed = seed(*corrected, tick);
             if (!correctedSeed) return {};
-            if (*correctedSeed == *candidateSeed) return corrected;
+            if (*correctedSeed == *candidateSeed)
+            {
+                const auto direction = ShotDirection(*corrected, *spread);
+                if (!direction) return {};
+                return PredictedShot{*corrected, *direction, *spread, *correctedSeed, tick};
+            }
             candidateSeed = correctedSeed;
         }
         return {};
+    }
+
+    template<class Seed, class Sample>
+    std::optional<Vec3> FindSpreadCorrectionIterative(Vec3 desiredAim, int tick, Seed&& seed, Sample&& sample,
+                                                      int attempts = 8)
+    {
+        const auto predicted = FindSpreadPredictionIterative(desiredAim, tick, seed, sample, attempts);
+        return predicted ? std::optional{predicted->angles} : std::nullopt;
     }
 
     // Native callbacks supply the angle/tick seed and sample for that seed. The

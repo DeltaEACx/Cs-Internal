@@ -97,6 +97,10 @@ Frame CaptureFrame(std::uint64_t session=0);
 // Camera-independent weapon/local capture for bounded map discovery. The eye
 // remains the native shooter position; viewMatrix is empty and cameraOrigin=eye.
 Frame CaptureProfile(std::uint64_t session=0);
+struct ShotContact { Vec3 position{}; bool hit{}; };
+// First collision only, including players. No penetration simulation or retained
+// native trace storage. A clear ray returns its range endpoint; failure is nullopt.
+std::optional<ShotContact> TraceShot(const Frame& profile,const Vec3& origin,const Vec3& direction,float range);
 bool IsCurrent(const Frame &frame);
 Result ProbeAt(const Frame &frame,float ndcX,float ndcY);
 // Both the basic ray and ballistic ray start at origin. Candidate origins may

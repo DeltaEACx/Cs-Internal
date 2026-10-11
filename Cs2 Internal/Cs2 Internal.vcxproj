@@ -154,12 +154,14 @@
     <ClCompile Include="src\features\visuals\chams_materials.cpp" />
     <ClCompile Include="src\features\visuals\particle_chams.cpp" />
     <ClCompile Include="src\features\visuals\autowall_crosshair.cpp" />
+    <ClCompile Include="src\features\visuals\spread_prediction.cpp" />
     <ClCompile Include="src\features\visuals\penetration_overlay.cpp" />
     <ClInclude Include="src\features\visuals\penetration_overlay.h" />
     <ClInclude Include="src\features\visuals\penetrable_props.h" />
     <ClInclude Include="src\features\visuals\detail\penetrable_props_cache.hpp" />
     <ClInclude Include="src\features\visuals\detail\penetration_surface.hpp" />
     <ClInclude Include="src\features\visuals\autowall_crosshair.h" />
+    <ClInclude Include="src\features\visuals\spread_prediction.h" />
     <ClInclude Include="src\features\visuals\detail\surface_square.hpp" />
     <ClInclude Include="src\features\visuals\detail\surface_square_projection.hpp" />
     <ClInclude Include="src\features\visuals\chams.h" />

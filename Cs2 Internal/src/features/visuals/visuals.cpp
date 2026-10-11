@@ -7,6 +7,7 @@
 #include "enhancements.hpp"
 #include "gun_images.h"
 #include "autowall_crosshair.h"
+#include "spread_prediction.h"
 #include "penetration_overlay.h"
 #include "features/combat/detail/hvh_input.hpp"
 #include "features/view/view_settings.h"
@@ -275,6 +276,7 @@ namespace visual_features
             backtrack::Frame(!stopping && game::in_world());
             visuals::backtrack_chams::Frame(!stopping && game::in_world());
             visuals::autowall_crosshair::Frame(!stopping && game::in_world());
+            visuals::spread_prediction::Frame(!stopping && game::in_world());
             visuals::penetration_overlay::Frame(!stopping && game::in_world());
         }
     }
@@ -289,6 +291,7 @@ namespace visual_features
         visuals::penetration_overlay::Render(frame);
         if(visuals::g_settings.enabled){visuals::render(frame);visuals::enhancements::Render(frame);}
         visuals::autowall_crosshair::Render(frame);
+        visuals::spread_prediction::Render(frame);
     }
     void DrawMenu(Page page)
     {

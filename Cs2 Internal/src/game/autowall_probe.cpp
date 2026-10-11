@@ -478,6 +478,23 @@ Frame CaptureLocked(std::uint64_t session,bool cameraRequired) {
 bool Initialize() {std::lock_guard lock(mutex);return ResolveBindings();}
 Frame CaptureFrame(std::uint64_t session) {std::lock_guard lock(mutex);return CaptureLocked(session,true);}
 Frame CaptureProfile(std::uint64_t session) {std::lock_guard lock(mutex);return CaptureLocked(session,false);}
+std::optional<ShotContact> TraceShot(const Frame& profile,const Vec3& origin,const Vec3& rayDirection,float range) {
+    std::lock_guard lock(mutex);
+    auto direction=rayDirection;
+    if (!profile.valid || !CurrentFrame(profile) || !WorldPoint(origin) || !Normalize(direction) ||
+        !std::isfinite(range) || range<=0.f || range>profile.stamp.range || range>maximumRay) return {};
+    ResolveBindings();
+    if (!api.filter || !api.ray || !api.managerSlot) return {};
+    systems::tracing::result result{};
+    const auto endpoint=origin+direction*range;
+    if (!WorldPoint(endpoint) || !Ray(profile.stamp.pawn,origin,endpoint,result) ||
+        !CurrentFrame(profile) || !std::isfinite(result.fraction) || result.fraction<0.f ||
+        result.fraction>1.f || result.all_solid) return {};
+    if (result.fraction==1.f) return ShotContact{endpoint,false};
+    const auto expected=origin+direction*(range*result.fraction);
+    if (!WorldPoint(result.end_pos) || (expected-result.end_pos).length()>std::max(.05f,range*.00001f)) return {};
+    return ShotContact{result.end_pos,true};
+}
 bool IsCurrent(const Frame &frame) {std::lock_guard lock(mutex);return frame.valid&&CurrentFrame(frame);}
 Result ProbeAt(const Frame &frame,float ndcX,float ndcY) {
     std::lock_guard lock(mutex);Result result;result.stamp=frame.stamp;

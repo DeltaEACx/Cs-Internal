@@ -79,6 +79,7 @@
     <ClCompile Include="src\features\visuals\chams_materials.cpp"><Filter>src\features\visuals</Filter></ClCompile>
     <ClCompile Include="src\features\visuals\particle_chams.cpp"><Filter>src\features\visuals</Filter></ClCompile>
     <ClCompile Include="src\features\visuals\autowall_crosshair.cpp"><Filter>src\features\visuals</Filter></ClCompile>
+    <ClCompile Include="src\features\visuals\spread_prediction.cpp"><Filter>src\features\visuals</Filter></ClCompile>
     <ClCompile Include="src\features\visuals\penetration_overlay.cpp"><Filter>src\features\visuals</Filter></ClCompile>
     <ClInclude Include="src\core\runtime_paths.h"><Filter>src\core</Filter></ClInclude>
     <ClInclude Include="src\core\module_digest.hpp"><Filter>src\core</Filter></ClInclude>
@@ -162,6 +163,7 @@
     <ClInclude Include="src\features\visuals\detail\penetrable_props_cache.hpp"><Filter>src\features\visuals\detail</Filter></ClInclude>
     <ClInclude Include="src\features\visuals\detail\penetration_surface.hpp"><Filter>src\features\visuals\detail</Filter></ClInclude>
     <ClInclude Include="src\features\visuals\autowall_crosshair.h"><Filter>src\features\visuals</Filter></ClInclude>
+    <ClInclude Include="src\features\visuals\spread_prediction.h"><Filter>src\features\visuals</Filter></ClInclude>
     <ClInclude Include="src\features\visuals\detail\surface_square.hpp"><Filter>src\features\visuals\detail</Filter></ClInclude>
     <ClInclude Include="src\features\visuals\detail\surface_square_projection.hpp"><Filter>src\features\visuals\detail</Filter></ClInclude>
     <ClInclude Include="src\features\visuals\chams.h"><Filter>src\features\visuals</Filter></ClInclude>

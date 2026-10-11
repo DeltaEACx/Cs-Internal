@@ -243,6 +243,33 @@ int main() {
     using namespace fixture;
     try {
         InitializeFixture();Check(Initialize(),"Expected native bindings");
+        Defaults();auto shotProfile=CaptureProfile(7);rayFraction=.25f;
+        const auto setupBeforeShot=setupCalls,bulletsBeforeShot=bulletCalls;
+        auto contact=TraceShot(shotProfile,shotProfile.eyeOrigin,{1,0,0},shotProfile.stamp.range);
+        Check(contact&&contact->hit&&std::abs(contact->position.x-shotProfile.stamp.range*.25f)<.001f&&
+              setupCalls==setupBeforeShot&&bulletCalls==bulletsBeforeShot,
+              "Predicted first contact was wrong or allocated ballistic trace storage");
+        rayClear=true;rayFraction=-1;
+        contact=TraceShot(shotProfile,shotProfile.eyeOrigin,{1,0,0},shotProfile.stamp.range);
+        Check(contact&&!contact->hit&&std::abs(contact->position.x-shotProfile.stamp.range)<.001f,
+              "Clear predicted ray became a failed trace or fake impact");
+        rayClear=false;wrongEndpoint=true;
+        Check(!TraceShot(shotProfile,shotProfile.eyeOrigin,{1,0,0},shotProfile.stamp.range),
+              "A mismatched native endpoint became a predicted impact");
+        wrongEndpoint=false;rayAllSolid=true;
+        Check(!TraceShot(shotProfile,shotProfile.eyeOrigin,{1,0,0},shotProfile.stamp.range),
+              "An all-solid ray produced a predicted impact");
+        rayAllSolid=false;failRay=true;
+        Check(!TraceShot(shotProfile,shotProfile.eyeOrigin,{1,0,0},shotProfile.stamp.range),
+              "Native ray failure became an exact impact");
+        failRay=false;
+        Check(!TraceShot(shotProfile,shotProfile.eyeOrigin,{},shotProfile.stamp.range)&&
+              !TraceShot(shotProfile,shotProfile.eyeOrigin,{1,0,0},shotProfile.stamp.range+1),
+              "Invalid predicted direction or excessive range reached the ray helper");
+        switchOnRay=true;
+        Check(!TraceShot(shotProfile,shotProfile.eyeOrigin,{1,0,0},shotProfile.stamp.range),
+              "A weapon switch during tracing retained a predicted impact");
+        Defaults();
         auto result=Probe();Check(result.state==State::Pass&&result.surface&&result.positionValid&&result.damage==20&&std::abs(result.position.x-100)<.01f&&result.normal.x==-1,"Air-leading penetrated wall or normal failed");
         Check(result.contactIndex==1&&std::abs(result.thickness-10)<.01f,"Material diagnostic/thickness incorrect");
         Check(appliedDamage==30&&appliedPenetration==2&&appliedModifier==.98f,"Current weapon stats missing");

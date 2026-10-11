@@ -32,6 +32,7 @@ struct Settings {
     float hitchance{70.f}, pointScale{.65f};
     bool autoStop{true}, autoScope{true}, multipoints{true};
     bool autoFire{true}, wallPenetration{true}, noSpread{true}, recoilCorrection{true};
+    bool showSpreadPrediction{true};
     bool antiAim{}, antiAimUseKey{};
     int yawMode{1}, pitchMode{1};
     float yawOffset{}, spinSpeed{360.f};
@@ -64,6 +65,9 @@ struct ScanSnapshot {
 };
 std::mutex scanMutex;
 ScanSnapshot lastScan;
+std::mutex predictionMutex;
+std::optional<SpreadPrediction> lastPrediction;
+void ClearPrediction() { std::lock_guard lock(predictionMutex); lastPrediction.reset(); }
 
 struct LivePoseSource {
     Address scene{}, state{}, binding{}, model{}, cache{};
@@ -202,6 +206,7 @@ void SynchronizeSession() {
     movement::Reset();
     { std::lock_guard lock(shotMutex); silentCommand.Clear(); cameraCommand.Clear(); }
     { std::lock_guard lock(scanMutex); lastScan = {}; }
+    ClearPrediction();
     commandEpoch.store(epoch, std::memory_order_release);
 }
 Settings Get() { std::lock_guard lock(settingsMutex); return settings; }
@@ -242,6 +247,44 @@ bool AntiAimActivated(const Settings& value) {
 }
 hvh_math::Vec3 Point(const Vec3& v) { return {v.x, v.y, v.z}; }
 Vec3 Point(hvh_math::Vec3 v) { return {v.x, v.y, v.z}; }
+void PublishPrediction(const combat_access::Context& context, hvh_math::Vec3 angles,
+                       std::optional<hvh_math::PredictedShot> exact, bool compensated) {
+    if (!context.valid || !context.accuracyValid || !hvh_math::detail::Finite(angles) ||
+        !combat_access::Finite(context.eye) || !std::isfinite(context.weapon.range) ||
+        context.weapon.range <= 0.f || context.weapon.range > 32768.f ||
+        !std::isfinite(context.weapon.inaccuracy) || context.weapon.inaccuracy < 0.f ||
+        !std::isfinite(context.weapon.spread) || context.weapon.spread < 0.f) { ClearPrediction(); return; }
+    SpreadPrediction forecast;
+    forecast.origin=Point(context.eye); forecast.angles=angles; forecast.exact=exact;
+    forecast.range=context.weapon.range; forecast.radius=context.weapon.inaccuracy+context.weapon.spread;
+    if (!std::isfinite(forecast.radius)) { ClearPrediction(); return; }
+    forecast.localHandle=context.local.handle; forecast.weaponHandle=context.weapon.handle;
+    forecast.epoch=hvh_input::worldEpoch.load(std::memory_order_acquire);
+    forecast.time=GetTickCount64(); forecast.compensated=compensated && exact.has_value();
+    std::lock_guard lock(predictionMutex); lastPrediction=forecast;
+}
+void PredictCurrentShot(Address input, const combat_access::CommittedShot* committed) {
+    const auto context=combat_access::ReadContext(input,false);
+    const auto timing=combat_access::ShotTiming(context);
+    if (!context.valid || !context.accuracyValid || !timing || context.weapon.definition==64 ||
+        (committed && (committed->sequence!=context.commandNumber ||
+        committed->localHandle!=context.local.handle || committed->weaponHandle!=context.weapon.handle))) {
+        ClearPrediction(); return;
+    }
+    const auto angles=hvh_math::ShotAim(Point(committed?committed->angles:context.angles),Point(context.punch),false);
+    if (!angles) { ClearPrediction(); return; }
+    const auto privateSeed=combat_access::ConvarBool("sv_usercmd_custom_random_seed");
+    std::optional<hvh_math::PredictedShot> exact;
+    if (context.weapon.bullets==1 && privateSeed && !*privateSeed)
+        exact=hvh_math::PredictShot(*angles,timing->tick,
+            [](hvh_math::Vec3 aim,int tick){return combat_access::SpreadSeed(Point(aim),tick);},
+            [&](std::uint32_t seed)->std::optional<hvh_math::Vec2>{
+                const auto spread=combat_access::Spread(context.weapon,seed);
+                if (!std::isfinite(spread.x) || !std::isfinite(spread.y)) return {};
+                return hvh_math::Vec2{spread.x,spread.y};
+            });
+    PublishPrediction(context,*angles,exact,false);
+}
 bool Fresh(const combat_access::Context& context, const hvh_math::Candidate& target) {
     if (game_access::Resolve(context.local.list, target.handle) != target.pawn ||
         game_access::Resolve(context.local.list, context.local.handle) != context.local.pawn ||
@@ -453,6 +496,7 @@ void ProcessShot(Address input, std::optional<combat_access::CommittedShot>& sho
         float damage{}, chance{}, fov{};
         bool penetrated{};
         hvh_accuracy::QualifiedShot rank;
+        std::optional<hvh_math::PredictedShot> prediction;
     };
     std::optional<Qualified> best;
     bool transientUnavailable{};
@@ -549,23 +593,38 @@ void ProcessShot(Address input, std::optional<combat_access::CommittedShot>& sho
         if (!budget.accuracy) break;
         --budget.accuracy;
         bool correctedSpread{};
+        std::optional<hvh_math::PredictedShot> predicted;
         if(compensate && budget.seedCalls) {
-            const auto corrected=hvh_math::FindSpreadCorrectionIterative(aim,timing->tick,
-                [&](hvh_math::Vec3 angle,int tick)->std::optional<std::uint32_t>{
-                    if(!budget.seedCalls)return {};
-                    --budget.seedCalls;
-                    const auto seed=combat_access::SpreadSeed(Point(angle),tick);
-                    if(!seed)transientUnavailable=true;
-                    return seed;
-                },[&](std::uint32_t seed)->std::optional<hvh_math::Vec2>{
-                    if(const auto found=budget.corrections.find(seed);found!=budget.corrections.end())return found->second;
-                    const auto value=combat_access::Spread(context.weapon,seed);
-                    const auto sample=std::isfinite(value.x)&&std::isfinite(value.y)?
-                        std::optional{hvh_math::Vec2{value.x,value.y}}:std::nullopt;
-                    if(!sample)transientUnavailable=true;
-                    budget.corrections.emplace(seed,sample);return sample;
-                });
-            if(corrected){aim=*corrected;correctedSpread=true;}
+            const auto readSeed=[&](hvh_math::Vec3 angle,int tick)->std::optional<std::uint32_t>{
+                if(!budget.seedCalls)return {};
+                --budget.seedCalls;
+                const auto seed=combat_access::SpreadSeed(Point(angle),tick);
+                if(!seed)transientUnavailable=true;
+                return seed;
+            };
+            const auto readSpread=[&](std::uint32_t seed)->std::optional<hvh_math::Vec2>{
+                if(const auto found=budget.corrections.find(seed);found!=budget.corrections.end())return found->second;
+                const auto value=combat_access::Spread(context.weapon,seed);
+                const auto sample=std::isfinite(value.x)&&std::isfinite(value.y)?
+                    std::optional{hvh_math::Vec2{value.x,value.y}}:std::nullopt;
+                if(!sample)transientUnavailable=true;
+                budget.corrections.emplace(seed,sample);return sample;
+            };
+            const auto corrected=hvh_math::FindSpreadPredictionIterative(aim,timing->tick,readSeed,readSpread);
+            if (corrected) {
+                // Reconstruct the physical angle from the command's float recoil
+                // subtraction. Rounding can change an angle-dependent seed.
+                const auto command=hvh_math::RemovePunch(corrected->angles,Point(context.punch));
+                const auto physical=command?hvh_math::ShotAim(*command,Point(context.punch),false):std::nullopt;
+                predicted=physical?hvh_math::PredictShot(*physical,timing->tick,readSeed,readSpread):std::nullopt;
+                const auto predictedHit=predicted?intersection(Point(predicted->direction)*context.weapon.range):std::nullopt;
+                const auto expected=hvh_math::detail::Forward(*desired);
+                auto actual=predicted?hvh_math::detail::Convert(predicted->direction):hvh_math::detail::DVec3{};
+                if (predicted && predicted->seed==corrected->seed && predictedHit && predictedHit->second==group &&
+                    hvh_math::detail::Normalize(actual) && hvh_math::detail::Dot(actual,expected)>=1.-1e-10) {
+                    aim=corrected->angles; correctedSpread=true;
+                } else predicted.reset();
+            }
         }
         // A failed exact seed solve must not stall a shot whose ordinary
         // spread probability already satisfies the user's threshold.
@@ -618,7 +677,7 @@ void ProcessShot(Address input, std::optional<combat_access::CommittedShot>& sho
             selected.distance, candidate.health, hit.penetrated, selected.index};
         if (!best || hvh_accuracy::Better(rank, best->rank))
             best = Qualified{candidate, commandAngle, targetTiming, record,pointPoses[selected.index],hit.damage,estimatedChance,
-                selected.angularDistance, hit.penetrated, rank};
+                selected.angularDistance, hit.penetrated, rank,predicted};
         // Live centers already lead the fair scan order. A clear live shot
         // that passes the user's damage and confidence settings is ready now;
         // searching multipoints/history afterward stalls its command.
@@ -642,6 +701,8 @@ void ProcessShot(Address input, std::optional<combat_access::CommittedShot>& sho
         const bool applied = combat_access::ApplyShot(context, best->angles, *timing, best->targetTiming);
         if(!applied)lastAttempt={};
         if (applied) {
+            if (setting.showSpreadPrediction && best->prediction)
+                PublishPrediction(context,best->prediction->angles,best->prediction,true);
             shotTarget=candidate;
             shotApplied = combat_access::CommittedShot{context.command, context.commandNumber,
                 context.local.handle, context.weapon.handle, *timing, best->angles, best->targetTiming};
@@ -713,7 +774,8 @@ void Process(Address input) {
     std::lock_guard lock(commandMutex);
     SynchronizeSession();
     const auto setting = Get();
-    if (!GameplayInput()) { acquisition={};lastAttempt={};movement::Reset();return; }
+    if (!GameplayInput()) { acquisition={};lastAttempt={};movement::Reset();ClearPrediction();return; }
+    ClearPrediction();
     if(!Activated(setting)){acquisition={};lastAttempt={};}
     std::optional<combat_access::CommittedShot> shotApplied;
     std::optional<hvh_math::Candidate> shotTarget;
@@ -723,6 +785,11 @@ void Process(Address input) {
     if (const auto changed = movement::Process(input, shotApplied.has_value() || preparingShot)) {
         std::lock_guard lock(shotMutex);
         cameraCommand.Applied({changed->command, changed->sequence, changed->localHandle, false});
+    }
+    if (setting.showSpreadPrediction && combatReady.load(std::memory_order_acquire)) {
+        bool published{};
+        { std::lock_guard lock(predictionMutex); published=lastPrediction.has_value(); }
+        if (!published) PredictCurrentShot(input,shotApplied?&*shotApplied:nullptr);
     }
     if (AntiAimActivated(setting)) ProcessOrientation(input, setting, shotApplied ? &*shotApplied : nullptr,
         shotTarget?&*shotTarget:nullptr);
@@ -844,9 +911,18 @@ bool Install() {
     return true;
 }
 const char* Status() { return status.load(); }
+std::optional<SpreadPrediction> Prediction() {
+    if (!running.load(std::memory_order_acquire) || !GameplayInput() ||
+        !Get().showSpreadPrediction) return {};
+    std::lock_guard lock(predictionMutex);
+    if (!lastPrediction || GetTickCount64()-lastPrediction->time>150 ||
+        lastPrediction->epoch!=hvh_input::worldEpoch.load(std::memory_order_acquire)) return {};
+    return lastPrediction;
+}
 bool Stop() {
     running = false;
     combatReady = false;
+    ClearPrediction();
     movement::SetPipelineStatus("Input hooks are stopped.");
     bool disabled = true;
     if (hookCreated) {
@@ -931,6 +1007,8 @@ void DrawMenu() {
         changed |= ImGui::Checkbox("Auto scope", &value.autoScope);
         changed |= ImGui::Checkbox("No spread", &value.noSpread);
         if (ImGui::IsItemHovered()) ImGui::SetTooltip("Requires predictable server spread. Servers using a private random seed retain spread.");
+        changed |= ImGui::Checkbox("Spread prediction marker", &value.showSpreadPrediction);
+        if (ImGui::IsItemHovered()) ImGui::SetTooltip("Known seed: predicted first contact. Private or unavailable seed: amber spread envelope. Also works with ragebot disabled; firing and correction settings remain separate.");
     }
     if (changed) Save(value);
 }

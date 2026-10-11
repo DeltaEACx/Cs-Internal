@@ -112,7 +112,7 @@ void __fastcall OriginalView(Address,int){}
 void Configure(Fixture& fixture){
  active=&fixture;game_access::verifiedGameplayClient=fixture.Base();
  hvh::running=true;hvh::combatReady=true;hvh::menuOpen=false;hvh::commandEpoch=0;hvh::SynchronizeSession();
- auto setting=hvh::Settings{};setting.activationMode=1;setting.noSpread=false;setting.autoScope=false;setting.autoStop=false;
+ auto setting=hvh::Settings{};setting.activationMode=1;setting.noSpread=false;setting.autoScope=false;setting.autoStop=false;setting.showSpreadPrediction=false;
  hvh::Save(setting);hvh::originalMove=Original;hvh::originalView=OriginalView;
 }
 void Invoke(){hvh::CreateMove(active->context.input,0,false);}
@@ -281,6 +281,40 @@ void NativeSeedWorkAndFallback(){
  setting=hvh::Get();setting.autoStop=true;hvh::Save(setting);Invoke();
  Check(!missing.shots&&!missing.preparations&&missing.spreadCalls==1,
   "Unavailable ordinary spread was resampled or authorized a hit-chance stopping request");
+}
+void PredictionAndFinalSeed(){
+ Fixture exact;Configure(exact);exact.privateSeed=false;exact.spreadAmount=.01f;
+ auto setting=hvh::Get();setting.noSpread=true;setting.showSpreadPrediction=true;hvh::Save(setting);Invoke();
+ auto prediction=hvh::Prediction();
+ Check(exact.shots==1 && prediction && prediction->exact && prediction->compensated &&
+       prediction->exact->seed==0 && prediction->exact->tick==exact.context.shotTiming->tick &&
+       exact.spreadCalls==1 && exact.seedCalls==3,
+       "Committed correction did not publish the final seed-verified ray or reused the sampler inefficiently");
+ exact.now+=151;Check(!hvh::Prediction(),"An expired predicted shot remained visible");
+
+ Fixture changed;Configure(changed);changed.privateSeed=false;changed.spreadAmount=.01f;
+ setting=hvh::Get();setting.noSpread=true;hvh::Save(setting);
+ changed.seedFunction=[&](Vec3,int)->std::optional<std::uint32_t>{return changed.seedCalls<3?0:1;};
+ Invoke();Check(changed.shots==1 && changed.seedCalls==3 && changed.shotAngles.z==0 && changed.spreadCalls==130,
+       "A changed final command seed retained compensation or stalled the ordinary hit-chance fallback");
+
+ Fixture manual;Configure(manual);manual.privateSeed=false;manual.spreadAmount=.05f;manual.context.weapon.spread=.05f;
+ setting=hvh::Get();setting.enabled=false;setting.showSpreadPrediction=true;hvh::Save(setting);Invoke();
+ prediction=hvh::Prediction();
+ Check(prediction && prediction->exact && !prediction->compensated && !manual.shots &&
+       !manual.traceCalls && manual.seedCalls==1 && manual.spreadCalls==1 && prediction->exact->direction.y<0,
+       "Independent manual marker changed firing or failed to predict actual spread");
+ manual.privateSeed=true;manual.Next();Invoke();prediction=hvh::Prediction();
+ Check(prediction && !prediction->exact && std::abs(prediction->radius-.05f)<1e-6f && manual.seedCalls==1,
+       "Private seed produced an exact ray or discarded the uncertainty envelope");
+ manual.privateSeed=false;manual.context.weapon.bullets=8;manual.Next();Invoke();prediction=hvh::Prediction();
+ Check(prediction && !prediction->exact && manual.seedCalls==1,"A shotgun marker claimed an exact single-bullet impact");
+ manual.context.accuracyValid=false;manual.Next();Invoke();Check(!hvh::Prediction(),"Invalid weapon accuracy produced a marker");
+ manual.context.accuracyValid=true;manual.context.weapon.bullets=1;manual.Next();Invoke();
+ Check(hvh::Prediction().has_value(),"Valid accuracy did not restore the marker");
+ manual.focused=false;Invoke();Check(!hvh::Prediction(),"Unfocused gameplay retained a predicted shot");
+ manual.focused=true;manual.Next();Invoke();hvh_input::LevelChanged();
+ Check(!hvh::Prediction(),"A map epoch change retained an old spread marker");
 }
 void NativeReadinessAndActivation(){
  Fixture manual;Configure(manual);auto setting=hvh::Get();setting.autoFire=false;hvh::Save(setting);Invoke();
@@ -505,6 +539,7 @@ extern "C" MH_STATUS WINAPI MH_DisableHook(LPVOID){return MH_OK;}
 int main(){try{scan_fixture::BasicProductionShot();scan_fixture::PromptQualifiedLiveShot();scan_fixture::FailedChanceScheduling();scan_fixture::LivePoseInvalidation();
  scan_fixture::CooldownPreparation();scan_fixture::ScopeBeforeAccuracy();scan_fixture::CrowdedFairBudget();
  scan_fixture::NativeSeedWorkAndFallback();scan_fixture::NativeReadinessAndActivation();scan_fixture::HistoricalTraceBudget();
+ scan_fixture::PredictionAndFinalSeed();
  scan_fixture::TransientAndMembershipRecovery();
  scan_fixture::DirectionAndActionCacheKeys();scan_fixture::FailedCommitAndScopeReadinessRecovery();
  std::cout<<"HVH production scan regression: PASS (real CreateMove/ProcessShot, lazy spread and trace budgets, repeated-command invalidation, live pose freshness, early scope, fair centers and cooldown preparation)\n";return 0;}

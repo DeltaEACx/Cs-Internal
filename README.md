@@ -1,5 +1,7 @@
 Cs2 HVH Source, please fork and star!
-Current issue's:
+Tauri for gui framework
+
+Current issue:
 Movement
 Lag with ragebot (sometimes?)
 

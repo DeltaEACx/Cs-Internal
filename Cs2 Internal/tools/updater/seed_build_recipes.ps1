@@ -1,0 +1,78 @@
+param(
+    [string]$GameDirectory='C:\Program Files (x86)\Steam\steamapps\common\Counter-Strike Global Offensive\game',
+    [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string]$ReportPath
+)
+$ErrorActionPreference='Stop'
+. (Join-Path $PSScriptRoot 'updater_core.ps1')
+$root=(Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+$analyzer=Join-Path $root 'bin\x64\Release\tools\BindingAnalyzer.exe'
+if (!(Test-Path -LiteralPath $analyzer)) { throw 'Build tools/updater/binding_analyzer.vcxproj first' }
+$audit=Get-Content -LiteralPath $ReportPath -Raw | ConvertFrom-Json
+$images=Get-UpdaterImages $GameDirectory
+foreach ($module in $audit.modules) {
+    if ($images[$module.name].pe.Hash -ne $module.sha256) { throw ('Cannot seed recipes from an unaudited '+$module.name) }
+}
+$functions=@()
+foreach ($binding in $audit.functions) {
+    if (!$binding.old_entry_matches) { throw ('Audit did not verify '+$binding.name) }
+    $rva=[Convert]::ToUInt32($binding.target_rva.Substring(2),16)
+    $fingerprint=Get-Fingerprint $images[$binding.module] $rva $analyzer
+    if ($fingerprint.match_offset -ne 0 -or !(Test-Fingerprint $images[$binding.module].pe $rva $fingerprint)) { throw ('Invalid function identity: '+$binding.name) }
+    $functions+=[pscustomobject]@{ name=$binding.name; module=$binding.module; header=('src\game\sdk\'+$binding.header); fingerprint=$fingerprint; links=@() }
+}
+foreach ($auxiliary in @(
+    @{name='EconomyGetter';rva=0x119A750;length=0xA0},
+    @{name='SchemaConstructor';rva=0x8377C0;length=0},
+    @{name='LightCaller';rva=0xB2616D;length=0},
+    @{name='CompositeCaller';rva=0x803387;length=0}
+)) {
+    $fingerprint=Get-Fingerprint $images['client.dll'] $auxiliary.rva $analyzer $auxiliary.length
+    $functions+=[pscustomobject]@{name=$auxiliary.name;module='client.dll';header='';fingerprint=$fingerprint;links=@()}
+}
+# Preserve known call/branch relationships, including split .pdata chunks.
+foreach ($function in $functions) {
+    $decode=Get-Decode $images[$function.module] $function.fingerprint.rva $function.fingerprint.length $analyzer
+    foreach ($instruction in $decode.instructions | Where-Object {$_.kind -in @('call','branch') -and $_.width -eq 4}) {
+        foreach ($target in $functions | Where-Object {$_.module -eq $function.module}) {
+            if ($instruction.target -eq $target.fingerprint.rva) {
+                $function.links+=[pscustomobject]@{offset=$instruction.offset;operand=$instruction.operand;length=$instruction.length;function=$target.name}
+            }
+        }
+    }
+}
+$patterns=@()
+foreach ($binding in $audit.patterns) {
+    if ($binding.matches -ne 1) { throw 'Cannot seed an unresolved signature' }
+    $parts=$binding.expression.Split(':',2); $module=$parts[0]; $expression=$parts[1]
+    $rva=[Convert]::ToUInt32($binding.rvas[0].Substring(2),16)
+    $fingerprint=$null
+    if ($images[$module].pe.Contains($rva,$true) -and $null -ne $images[$module].pe.FunctionAt($rva)) {
+        $fingerprint=Get-Fingerprint $images[$module] $rva $analyzer
+    }
+    $patterns+=[pscustomobject]@{file=$binding.file;module=$module;expression=$expression;rva=$rva;fingerprint=$fingerprint}
+}
+$profile=[pscustomobject]@{
+    version=1; audited=$audit.audited; modules=$audit.modules; functions=$functions; patterns=$patterns
+    exports=@(
+        @{module='tier0.dll';name='?LoadKV3@@YA_NPEAVKeyValues3@@PEAVCUtlString@@PEBDAEBUKV3ID_t@@2I@Z'},
+        @{module='tier0.dll';name='?Insert@CBufferString@@QEAAPEBDHPEBDH_N@Z'},
+        @{module='tier0.dll';name='?Purge@CBufferString@@QEAAXH@Z'},
+        @{module='tier0.dll';name='CreateInterface'}, @{module='resourcesystem.dll';name='CreateInterface'}
+    )
+    vtables=@(
+        @{type='.?AVCSource2Client@@';module='client.dll';file='src\game\sdk\EconBindings.h';constant='kClientVtableRva';slot=36;function='FrameStageNotify'},
+        @{type='.?AVCCStrike15ItemSchema@@';module='client.dll';file='src\game\sdk\EconBindings.h';constant='kSchemaVtableRva';slot=-1;function=''},
+        @{type='.?AVCCStrike15ItemSystem@@';module='client.dll';file='src\game\sdk\EconBindings.h';constant='kSystemVtableRva';slot=-1;function=''},
+        @{type='.?AVCMaterial2@@';module='materialsystem2.dll';file='src\game\sdk\PreviewBindings.h';constant='kMaterialVtable';slot=16;function='GetTexture'},
+        @{type='.?AVCAnimatableSceneObjectDesc@@';module='scenesystem.dll';file='src\game\sdk\ChamsBindings.h';constant='';slot=4;function='kGeneratePrimitives'},
+        @{type='.?AVCBaseSceneObjectDesc@@';module='scenesystem.dll';file='src\game\sdk\ChamsBindings.h';constant='';slot=4;function='kGeneratePrimitives'}
+    )
+    references=@(
+        @{function='SetModel';offset=12;operand=3;length=7;file='src\game\sdk\SkinBindings.h';constant='kModelSystemPointerRva'},
+        @{function='ThirdPerson';offset=36;operand=3;length=7;file='src\game\sdk\ViewBindings.h';constant='kInputPointer'},
+        @{function='LightCaller';offset=(0xB2616D-($functions|Where-Object name -eq 'LightCaller').fingerprint.rva);operand=3;length=7;file='src\game\sdk\VisualBindings.h';constant='lightManager'}
+    )
+    schema_fields=$audit.schema_fields
+}
+Write-UpdaterJson (Join-Path $PSScriptRoot 'build-recipes.json') $profile
+Write-Host ('Seeded '+$functions.Count+' function proofs and '+$patterns.Count+' signature locators from the audited build.')

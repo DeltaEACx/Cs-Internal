@@ -1,0 +1,21 @@
+const paths = {
+  skins: '<rect x="4" y="6" width="13" height="15" rx="3"/><path d="M8 3h12a1 1 0 0 1 1 1v12M8 16l5-5M8 11h.01M13 16h.01"/>',
+  players: '<circle cx="12" cy="7" r="3.5"/><path d="M5 21v-2a7 7 0 0 1 14 0v2H5Z"/>',
+  weapons: '<path d="M3 7h18v5h-6l-2 8H8l2-8H3V7ZM17 7v5M6 7V5h10"/>',
+  world: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c5 5 5 13 0 18-5-5-5-13 0-18Z"/>',
+  hud: '<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>',
+  camera: '<path d="m8 6 2-3h4l2 3h4a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4Z"/><circle cx="12" cy="13" r="4"/>',
+  combat: '<path d="m4 3 16 16M3 4l3 1M20 3 4 19M21 4l-3 1M2 15l6 6M16 21l6-6"/>',
+  search: '<circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/>',
+  chevron: '<path d="m9 5 7 7-7 7"/>',
+  down: '<path d="m6 9 6 6 6-6"/>',
+  close: '<path d="m6 6 12 12M18 6 6 18"/>',
+  minus: '<path d="M5 12h14"/>',
+  more: '<circle cx="5" cy="12" r="1" fill="currentColor"/><circle cx="12" cy="12" r="1" fill="currentColor"/><circle cx="19" cy="12" r="1" fill="currentColor"/>',
+  check: '<path d="m5 12 4 4L19 6"/>',
+  reconnect: '<path d="M20 7v5h-5M4 17v-5h5M6 7a7 7 0 0 1 11-1l3 6M4 12l3 6a7 7 0 0 0 11-1"/>',
+  key: '<circle cx="8" cy="9" r="4"/><path d="m11 12 8 8 3-3-2-2-2 2-3-3"/>',
+  arrow: '<path d="M5 12h14m-5-5 5 5-5 5"/>',
+  empty: '<path d="M5 6h14v14H5zM8 3h8M9 10h6M9 14h4"/>',
+};
+export const icon = (name, className = '') => `<svg class="icon ${className}" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.55" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths[name] || paths.empty}</svg>`;

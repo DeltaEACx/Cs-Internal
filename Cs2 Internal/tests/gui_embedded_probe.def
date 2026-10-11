@@ -1,0 +1,7 @@
+LIBRARY gui_embedded_probe
+EXPORTS
+    velora_gui_run
+    velora_gui_stop
+    velora_gui_toggle
+    velora_gui_running
+    velora_gui_last_error

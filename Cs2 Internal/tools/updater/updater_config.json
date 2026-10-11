@@ -1,0 +1,7 @@
+{
+  "auto_update": true,
+  "dumper_path": "",
+  "game_directory": "",
+  "dump_timeout_seconds": 120,
+  "retry_minutes": 15
+}

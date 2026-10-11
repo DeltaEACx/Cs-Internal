@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64"><Configuration>Debug</Configuration><Platform>x64</Platform></ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64"><Configuration>Release</Configuration><Platform>x64</Platform></ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals"><ProjectGuid>{30859b27-fa84-4114-9b50-4791551e45ae}</ProjectGuid><WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion></PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <PlatformToolset Condition="'$(VisualStudioVersion)' &gt;= '18.0'">v145</PlatformToolset>
+    <PlatformToolset Condition="'$(VisualStudioVersion)' &lt; '18.0'">v143</PlatformToolset>
+    <UseDebugLibraries Condition="'$(Configuration)'=='Debug'">true</UseDebugLibraries>
+    <UseDebugLibraries Condition="'$(Configuration)'=='Release'">false</UseDebugLibraries>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <PropertyGroup><OutputGroup></OutputGroup><TargetName>DeltaEAC</TargetName></PropertyGroup>
+  <Import Project="build\cpp.props" />
+  <ItemDefinitionGroup><Link><SubSystem>Windows</SubSystem><AdditionalDependencies>d3d11.lib;dxgi.lib;d3dcompiler.lib;windowscodecs.lib;ole32.lib;%(AdditionalDependencies)</AdditionalDependencies></Link></ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="src\dllmain.cpp" />
+    <ClCompile Include="src\features\combat\backtrack.cpp" />
+    <ClCompile Include="src\game\combat_geometry.cpp" />
+    <ClCompile Include="src\features\visuals\backtrack_chams.cpp" />
+    <ClCompile Include="src\render\preview_scene.cpp" />
+    <ClCompile Include="src\ui\agent_preview.cpp" />
+    <ClCompile Include="src\features\view\view_settings.cpp" />
+    <ClCompile Include="src\ui\overlay.cpp" />
+    <ClCompile Include="src\ui\gui_bridge.cpp" />
+    <ClCompile Include="src\ui\gui_embedded.cpp" />
+    <ClCompile Include="src\ui\catalog_ui.cpp" />
+    <ClCompile Include="src\game\econ_schema.cpp" />
+    <ClCompile Include="src\game\character_catalog.cpp" />
+    <ClCompile Include="src\core\runtime_paths.cpp" />
+    <ClCompile Include="src\features\cosmetics\skin_changer.cpp" />
+    <ClCompile Include="third_party\imgui\imgui.cpp" />
+    <ClCompile Include="third_party\imgui\imgui_draw.cpp" />
+    <ClCompile Include="third_party\imgui\imgui_widgets.cpp" />
+    <ClCompile Include="third_party\imgui\imgui_impl_dx11.cpp" />
+    <ClCompile Include="third_party\imgui\imgui_impl_win32.cpp" />
+    <ClCompile Include="third_party\minhook\src\buffer.c" />
+    <ClCompile Include="third_party\minhook\src\hook.c" />
+    <ClCompile Include="third_party\minhook\src\trampoline.c" />
+    <ClCompile Include="third_party\minhook\src\hde\hde64.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\core\runtime_paths.h" />
+    <ClInclude Include="src\core\module_digest.hpp" />
+    <ClInclude Include="src\core\pattern_match.hpp" />
+    <ClInclude Include="src\features\combat\backtrack.h" />
+    <ClInclude Include="src\features\combat\detail\backtrack_history.hpp" />
+    <ClInclude Include="src\features\visuals\backtrack_chams.h" />
+    <ClInclude Include="src\game\sdk\BacktrackBindings.h" />
+    <ClInclude Include="src\game\sdk\MovementBindings.h" />
+    <ClInclude Include="src\core\user_defaults.hpp" />
+    <ClInclude Include="src\features\combat\detail\hvh_accuracy.hpp" />
+    <ClInclude Include="src\features\cosmetics\skin_changer.h" />
+    <ClInclude Include="src\features\view\view_settings.h" />
+    <ClInclude Include="src\game\character_catalog.h" />
+    <ClInclude Include="src\game\custom_models.h" /><ClInclude Include="src\game\image_finish_presets.h" /><ClInclude Include="src\features\cosmetics\lobby_preview.inl" />
+    <ClInclude Include="src\game\econ_schema.h" />
+    <ClInclude Include="src\game\game_access.h" />
+    <ClInclude Include="src\game\sdk\client_dll.hpp" />
+    <ClInclude Include="src\game\sdk\interfaces.hpp" />
+    <ClInclude Include="src\game\sdk\offsets.hpp" />
+    <ClInclude Include="src\game\sdk\EconBindings.h" />
+    <ClInclude Include="src\game\sdk\SkinBindings.h" />
+    <ClInclude Include="src\game\sdk\PreviewBindings.h" />
+    <ClInclude Include="src\game\sdk\ViewBindings.h" />
+    <ClInclude Include="src\platform\windows.h" />
+    <ClInclude Include="src\render\preview_scene.h" />
+    <ClInclude Include="src\render\preview_material.h" />
+    <ClInclude Include="src\ui\agent_preview.h" />
+    <ClInclude Include="src\ui\catalog_ui.h" />
+    <ClInclude Include="src\ui\overlay.h" />
+    <ClInclude Include="src\ui\gui_embedded.h" />
+    <ClInclude Include="src\ui\menu_style.h" />
+    <ClInclude Include="src\ui\menu_shell.h" />
+    <ClInclude Include="src\ui\option_row.h" />
+    <ClInclude Include="third_party\imgui\imconfig.h" />
+    <ClInclude Include="third_party\imgui\imgui_impl_dx11.h" />
+    <ClInclude Include="third_party\imgui\imgui_impl_win32.h" />
+    <ClInclude Include="third_party\imgui\imgui_internal.h" />
+    <ClInclude Include="third_party\imgui\imgui.h" />
+    <ClInclude Include="third_party\imgui\imstb_rectpack.h" />
+    <ClInclude Include="third_party\imgui\imstb_textedit.h" />
+    <ClInclude Include="third_party\imgui\imstb_truetype.h" />
+    <ClInclude Include="third_party\minhook\include\MinHook.h" />
+    <ClInclude Include="third_party\minhook\src\buffer.h" />
+    <ClInclude Include="third_party\minhook\src\hde\hde64.h" />
+    <ClInclude Include="third_party\minhook\src\hde\pstdint.h" />
+    <ClInclude Include="third_party\minhook\src\hde\table64.h" />
+    <ClInclude Include="third_party\minhook\src\trampoline.h" />
+    <ClInclude Include="third_party\nlohmann\json.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\features\visuals\effects\combat.cpp" />
+    <ClCompile Include="src\features\visuals\effects\combat_menu.cpp" />
+    <ClCompile Include="src\features\visuals\effects\config.cpp" />
+    <ClCompile Include="src\features\visuals\effects\particles.cpp" />
+    <ClCompile Include="src\features\visuals\effects\world.cpp" />
+    <ClCompile Include="src\features\visuals\effects\world_menu.cpp" />
+    <ClCompile Include="src\features\visuals\effects\weapon_effects.cpp" />
+    <ClInclude Include="src\features\visuals\effects\weapon_effects.hpp" />
+    <ClCompile Include="src\features\visuals\engine.cpp" />
+    <ClCompile Include="src\features\visuals\menu.cpp" />
+    <ClCompile Include="src\features\visuals\player_esp.cpp" />
+    <ClCompile Include="src\features\visuals\renderer.cpp" />
+    <ClCompile Include="src\features\visuals\visuals.cpp" />
+    <ClCompile Include="src\features\visuals\penetrable_props.cpp" />
+    <ClCompile Include="src\features\visuals\enhancements.cpp" />
+    <ClCompile Include="src\features\visuals\gun_images.cpp" />
+    <ClInclude Include="src\features\visuals\enhancements.hpp" />
+    <ClInclude Include="src\features\visuals\gun_images.h" />
+    <ClInclude Include="src\game\sdk\VisualBindings.h" />
+    <ClCompile Include="src\features\visuals\world_esp.cpp" />
+    <ClInclude Include="src\features\visuals\detail\draw.hpp" />
+    <ClInclude Include="src\features\visuals\detail\bullet_tracers.hpp" />
+    <ClInclude Include="src\features\visuals\effects\combat.hpp" />
+    <ClInclude Include="src\features\visuals\effects\config.hpp" />
+    <ClInclude Include="src\features\visuals\effects\particles.hpp" />
+    <ClInclude Include="src\features\visuals\effects\world.hpp" />
+    <ClInclude Include="src\features\visuals\engine.hpp" />
+    <ClInclude Include="src\features\visuals\frame_data.hpp" />
+    <ClInclude Include="src\features\visuals\renderer.hpp" />
+    <ClInclude Include="src\features\visuals\settings.hpp" />
+    <ClInclude Include="src\features\visuals\visuals.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\game\visual_access.cpp" />
+    <ClCompile Include="src\features\combat\hvh.cpp"><ExceptionHandling>Async</ExceptionHandling></ClCompile>
+    <ClCompile Include="src\features\movement\movement.cpp" />
+    <ClCompile Include="src\features\movement\context.cpp" />
+    <ClInclude Include="src\features\movement\movement.h" />
+    <ClInclude Include="src\features\movement\context.h" />
+    <ClInclude Include="src\features\movement\detail\movement_policy.hpp" />
+    <ClCompile Include="src\game\combat_access.cpp" />
+    <ClCompile Include="src\game\combat_command.cpp" />
+    <ClCompile Include="src\game\combat_hitboxes.cpp" />
+    <ClInclude Include="src\features\combat\hvh.h" />
+    <ClInclude Include="src\features\combat\detail\hvh_math.hpp" />
+    <ClInclude Include="src\features\combat\detail\hvh_points.hpp" />
+    <ClInclude Include="src\features\combat\detail\hvh_input.hpp" />
+    <ClInclude Include="src\features\combat\detail\hvh_antiaim.hpp" />
+    <ClInclude Include="src\game\combat_command.h" />
+    <ClCompile Include="src\game\autowall_probe.cpp" />
+    <ClInclude Include="src\game\autowall_probe.h" />
+    <ClInclude Include="src\game\combat_access.h" />
+    <ClInclude Include="src\game\sdk\CombatBindings.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\features\visuals\chams.cpp" />
+    <ClCompile Include="src\features\visuals\chams_materials.cpp" />
+    <ClCompile Include="src\features\visuals\particle_chams.cpp" />
+    <ClCompile Include="src\features\visuals\autowall_crosshair.cpp" />
+    <ClCompile Include="src\features\visuals\penetration_overlay.cpp" />
+    <ClInclude Include="src\features\visuals\penetration_overlay.h" />
+    <ClInclude Include="src\features\visuals\penetrable_props.h" />
+    <ClInclude Include="src\features\visuals\detail\penetrable_props_cache.hpp" />
+    <ClInclude Include="src\features\visuals\detail\penetration_surface.hpp" />
+    <ClInclude Include="src\features\visuals\autowall_crosshair.h" />
+    <ClInclude Include="src\features\visuals\detail\surface_square.hpp" />
+    <ClInclude Include="src\features\visuals\detail\surface_square_projection.hpp" />
+    <ClInclude Include="src\features\visuals\chams.h" />
+    <ClInclude Include="src\features\visuals\chams_materials.h" />
+    <ClInclude Include="src\features\visuals\particle_chams.h" />
+    <ClInclude Include="src\features\visuals\detail\primitive_buffer.hpp" />
+    <ClInclude Include="src\game\sdk\ChamsBindings.h" />
+  </ItemGroup>
+  <Import Project="build\embedded_gui.props" />
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <Target Name="SyncStandardDllOutput" AfterTargets="Build">
+    <Copy SourceFiles="$(TargetPath)" DestinationFiles="$(ProjectRoot)bin\$(Platform)\$(Configuration)\$(TargetFileName)" SkipUnchangedFiles="true" />
+  </Target>
+</Project>

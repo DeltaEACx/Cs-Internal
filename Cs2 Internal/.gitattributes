@@ -1,0 +1,15 @@
+* text=auto
+*.cpp text
+*.c text
+*.h text
+*.hpp text
+*.md text
+*.ps1 text
+*.vcxproj text
+*.filters text
+*.png binary
+*.glb binary
+*.vmdl_c binary
+*.vmat_c binary
+*.vtex_c binary
+*.zip binary

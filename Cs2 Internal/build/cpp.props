@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <ProjectRoot>$(MSBuildThisFileDirectory)..\</ProjectRoot>
+    <OutDir>$(ProjectRoot)bin\$(Platform)\$(Configuration)\$(OutputGroup)</OutDir>
+    <OutDir Condition="'$(ConfigurationType)' == 'DynamicLibrary'">$(ProjectRoot)DLL\</OutDir>
+    <IntDir>$(ProjectRoot)obj\$(Platform)\$(Configuration)\$(MSBuildProjectName)\</IntDir>
+    <IntDir Condition="'$(CommandLineIntermediateRoot)' != ''">$(CommandLineIntermediateRoot)$(Platform)\$(Configuration)\$(MSBuildProjectName)\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <ConformanceMode>true</ConformanceMode>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary Condition="'$(Configuration)'=='Release'">MultiThreaded</RuntimeLibrary>
+      <RuntimeLibrary Condition="'$(Configuration)'=='Debug'">MultiThreadedDebug</RuntimeLibrary>
+      <PreprocessorDefinitions>NOMINMAX;WIN32_LEAN_AND_MEAN;UNICODE;_UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions Condition="'$(Configuration)'=='Release'">NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions Condition="'$(Configuration)'=='Debug'">_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ProjectRoot)src;$(ProjectRoot)third_party;$(ProjectRoot)third_party\imgui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <ForceSynchronousPDBWrites>true</ForceSynchronousPDBWrites>
+      <!-- Keep /FS explicit: concurrent compiler invocations must serialize
+           debug-database writes, including invocations started from the IDE. -->
+      <AdditionalOptions>/FS %(AdditionalOptions)</AdditionalOptions>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ProgramDatabaseFile>$(IntDir)$(TargetName).pdb</ProgramDatabaseFile>
+      <ImportLibrary Condition="'$(ConfigurationType)' == 'DynamicLibrary'">$(IntDir)$(TargetName).lib</ImportLibrary>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)'=='Release'">
+    <ClCompile><Optimization>MaxSpeed</Optimization><FunctionLevelLinking>true</FunctionLevelLinking><IntrinsicFunctions>true</IntrinsicFunctions></ClCompile>
+    <Link><EnableCOMDATFolding>true</EnableCOMDATFolding><OptimizeReferences>true</OptimizeReferences></Link>
+  </ItemDefinitionGroup>
+  <Target Name="RejectUnsupportedPlatform" BeforeTargets="PrepareForBuild" Condition="'$(Platform)' != 'x64'">
+    <Error Text="This project requires an x64 configuration." />
+  </Target>
+</Project>

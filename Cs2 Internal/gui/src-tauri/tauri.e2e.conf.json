@@ -1,0 +1,18 @@
+{
+  "identifier": "app.velora.companion.e2e",
+  "app": {
+    "windows": [{
+      "label": "main",
+      "title": "DeltaEAC integration test",
+      "width": 1220,
+      "height": 800,
+      "minWidth": 960,
+      "minHeight": 640,
+      "decorations": false,
+      "visible": false,
+      "alwaysOnTop": false,
+      "devtools": true,
+      "backgroundColor": "#101014"
+    }]
+  }
+}

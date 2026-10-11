@@ -1,0 +1,52 @@
+# Build output, dependency downloads, and IDE state.
+.vs/
+.vscode/
+DLL/
+bin/
+obj/
+dist/
+node_modules/
+target/
+target-*/
+.build-updater/
+.asset-build/
+__pycache__/
+*.dll
+*.exe
+*.lib
+*.exp
+*.ilk
+*.pdb
+*.obj
+*.iobj
+*.ipdb
+*.pch
+*.tlog
+*.log
+*.zip
+*.user
+*.suo
+*.py[cod]
+*.tmp
+*.tmp-*
+
+# Runtime assets and local settings are not needed to compile the project.
+/Cs2 Internal/cs2_assets/
+/Cs2 Internal/configs/
+/Cs2 Internal/tests/artifacts/
+/Cs2 Internal/gui/src-tauri/gen/
+
+# Local launch helpers and downloaded package metadata.
+/Cs2 Internal/Apply Latest DLL.cmd
+/Cs2 Internal/Launch DeltaEAC.cmd
+/Cs2 Internal/gui/Launch DeltaEAC.cmd
+.cargo_vcs_info.json
+
+# Local credentials and agent configuration.
+.env
+.env.*
+*.pem
+*.key
+.aws/
+.codex/
+.agents/

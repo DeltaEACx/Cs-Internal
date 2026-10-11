@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="dark" />
+    <title>DeltaEAC</title>
+    <link rel="stylesheet" href="/src/styles.css" />
+    <link rel="stylesheet" href="/src/tokyo.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+    <div id="startup-loading" class="startup-loading" role="status" aria-live="polite" data-tauri-drag-region>
+      <div class="startup-center"><div class="startup-brand">DeltaEAC</div><div class="startup-title">Loading</div><span id="startup-message" class="sr-only">Loading</span><div id="startup-track" class="startup-track" role="progressbar" aria-label="Loading" aria-valuemin="0" aria-valuemax="100" aria-valuenow="5"><div id="startup-progress" class="startup-fill"></div></div></div>
+    </div>
+      <aside class="sidebar" aria-label="Main navigation">
+        <div class="rail-cap" data-tauri-drag-region><span class="brand-wordmark"><strong>DeltaEAC</strong></span></div>
+        <nav id="main-nav" class="main-nav"></nav>
+      </aside>
+      <main class="workspace">
+        <header class="topbar" data-tauri-drag-region>
+          <h1 id="page-title" class="sr-only">Overlays</h1>
+          <div class="window-drag-space" data-tauri-drag-region></div>
+          <div class="window-actions"><button id="minimize" type="button" aria-label="Minimize window" title="Minimize"></button></div>
+        </header>
+        <div class="page-navigation"><nav id="sub-nav" class="sub-nav" aria-label="Pages"></nav><span class="page-line"></span></div>
+        <section id="content" class="page-content" aria-label="Feature settings" tabindex="-1"></section>
+      </main>
+      <aside id="character-preview" class="character-preview" aria-label="Character preview">
+        <header class="preview-header"><span>Preview</span></header>
+        <div class="preview-caption"><span id="preview-name"></span><span id="preview-weapon"></span></div>
+        <div id="preview-stage" class="preview-stage" aria-label="Drag to rotate the character. Scroll to zoom." tabindex="0"><img id="preview-image" alt="Current character model" hidden draggable="false" /><div id="preview-empty" class="preview-empty"><span id="preview-status">Loading preview</span></div></div>
+        <div class="preview-controls"><label for="preview-rotate">Rotate</label><button id="preview-rotate" class="switch" type="button" role="switch" aria-label="Rotate character" aria-checked="false"></button><span class="preview-spacer"></span><button id="preview-reset" class="action-button" type="button">Reset</button><button id="preview-reload" class="action-button" type="button">Reload</button></div>
+        <button id="preview-equipped" class="preview-equipped" type="button">Show equipped</button>
+      </aside>
+    </div>
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <script type="module" src="/src/app.js"></script>
+  </body>
+</html>

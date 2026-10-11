@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Release|x64"><Configuration>Release</Configuration><Platform>x64</Platform></ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals"><ProjectGuid>{5065368A-A9DC-4873-9E7F-482DAD18694B}</ProjectGuid><WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion></PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset Condition="'$(VisualStudioVersion)' &gt;= '18.0'">v145</PlatformToolset>
+    <PlatformToolset Condition="'$(VisualStudioVersion)' &lt; '18.0'">v143</PlatformToolset>
+    <UseDebugLibraries Condition="'$(Configuration)'=='Debug'">true</UseDebugLibraries>
+    <UseDebugLibraries Condition="'$(Configuration)'=='Release'">false</UseDebugLibraries>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <PropertyGroup><OutputGroup>tests\</OutputGroup></PropertyGroup>
+  <Import Project="..\build\cpp.props" />
+  <ItemDefinitionGroup><Link><SubSystem>Console</SubSystem><AdditionalDependencies>d3d11.lib;windowscodecs.lib;ole32.lib;bcrypt.lib;%(AdditionalDependencies)</AdditionalDependencies></Link></ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="..\tests\catalog_regression.cpp" />
+    <ClCompile Include="..\src\game\character_catalog.cpp" />
+    <ClCompile Include="..\src\core\runtime_paths.cpp" />
+    <ClCompile Include="..\src\features\cosmetics\skin_changer.cpp" />
+    <ClCompile Include="..\src\features\visuals\engine.cpp" />
+    <ClCompile Include="..\src\features\view\view_settings.cpp" />
+    <ClCompile Include="..\third_party\imgui\imgui.cpp" />
+    <ClCompile Include="..\third_party\imgui\imgui_draw.cpp" />
+    <ClCompile Include="..\third_party\imgui\imgui_widgets.cpp" />
+    <ClCompile Include="..\third_party\minhook\src\buffer.c" />
+    <ClCompile Include="..\third_party\minhook\src\hook.c" />
+    <ClCompile Include="..\third_party\minhook\src\trampoline.c" />
+    <ClCompile Include="..\third_party\minhook\src\hde\hde64.c" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+</Project>

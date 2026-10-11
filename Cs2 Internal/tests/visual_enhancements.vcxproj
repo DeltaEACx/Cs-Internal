@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Release|x64"><Configuration>Release</Configuration><Platform>x64</Platform></ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals"><ProjectGuid>{32C13331-6C72-4A84-9654-E07E3F7FA7AC}</ProjectGuid><WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion></PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset Condition="'$(VisualStudioVersion)' &gt;= '18.0'">v145</PlatformToolset>
+    <PlatformToolset Condition="'$(VisualStudioVersion)' &lt; '18.0'">v143</PlatformToolset>
+    <UseDebugLibraries Condition="'$(Configuration)'=='Debug'">true</UseDebugLibraries>
+    <UseDebugLibraries Condition="'$(Configuration)'=='Release'">false</UseDebugLibraries>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <PropertyGroup><OutputGroup>tests\</OutputGroup><MainObjectDir Condition="'$(MainObjectDir)'==''">$(ProjectDir)..\obj\x64\Release\Cs2 Internal\</MainObjectDir></PropertyGroup>
+  <Import Project="..\build\cpp.props" />
+  <ItemDefinitionGroup><Link><SubSystem>Console</SubSystem><AdditionalDependencies>d3d11.lib;d3dcompiler.lib;dxgi.lib;bcrypt.lib;windowscodecs.lib;ole32.lib;%(AdditionalDependencies)</AdditionalDependencies></Link></ItemDefinitionGroup>
+  <!-- Build the main Release DLL first; reuse its engine adapters. The fixture
+       includes the current enhancements/chams/material sources for native mocks. -->
+  <ItemGroup>
+    <ClCompile Include="..\tests\visual_enhancements.cpp" />
+    <Object Include="$(MainObjectDir)*.obj"
+            Exclude="$(MainObjectDir)dllmain.obj;$(MainObjectDir)overlay.obj;$(MainObjectDir)gui_embedded.obj;$(MainObjectDir)gui_transport.obj;$(MainObjectDir)enhancements.obj;$(MainObjectDir)chams.obj;$(MainObjectDir)chams_materials.obj;$(MainObjectDir)combat_features.obj;$(MainObjectDir)hvh.obj;$(MainObjectDir)spectral_host.obj;$(MainObjectDir)spectral_hud.obj;$(MainObjectDir)aimbot.obj;$(MainObjectDir)autowall.obj;$(MainObjectDir)triggerbot.obj" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+</Project>

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <VeloraEmbeddedTargetRoot>$(ProjectRoot)gui\src-tauri\target-embedded\</VeloraEmbeddedTargetRoot>
+    <VeloraEmbeddedLibrary>$(VeloraEmbeddedTargetRoot)x86_64-pc-windows-msvc\release\velora_gui_lib.lib</VeloraEmbeddedLibrary>
+    <VeloraEmbeddedNativeResponse>$(VeloraEmbeddedTargetRoot)native-static-libs.rsp</VeloraEmbeddedNativeResponse>
+    <VeloraEmbeddedNativeLibraries>advapi32.lib;kernel32.lib;ntdll.lib;userenv.lib;ws2_32.lib;dbghelp.lib;libcmt.lib</VeloraEmbeddedNativeLibraries>
+    <VeloraEmbeddedBuildArguments Condition="'$(VeloraEmbeddedTest)'=='true'">-BridgeTest</VeloraEmbeddedBuildArguments>
+    <VeloraEmbeddedBuildArguments Condition="'$(VeloraEmbeddedRunTests)'=='true'">$(VeloraEmbeddedBuildArguments) -RunTests</VeloraEmbeddedBuildArguments>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <!-- Rust and the bundled WebView2 loader use the static release CRT. Debug
+         builds retain debug symbols while sharing that same CRT contract. -->
+    <ClCompile><RuntimeLibrary>MultiThreaded</RuntimeLibrary></ClCompile>
+    <Link>
+      <AdditionalDependencies>$(VeloraEmbeddedLibrary);$(VeloraEmbeddedNativeLibraries);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalManifestDependencies>type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='amd64' publicKeyToken='6595b64144ccf1df' language='*';%(AdditionalManifestDependencies)</AdditionalManifestDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <Target Name="BuildEmbeddedVeloraGui" BeforeTargets="Link" Condition="'$(DesignTimeBuild)'!='true'">
+    <Exec Condition="'$(VeloraSkipEmbeddedBuild)'!='true'" WorkingDirectory="$(ProjectRoot)" Command="powershell.exe -NoProfile -ExecutionPolicy Bypass -File &quot;$(ProjectRoot)gui\build-embedded.ps1&quot; $(VeloraEmbeddedBuildArguments)" />
+    <Error Condition="!Exists('$(VeloraEmbeddedLibrary)')" Text="The embedded Tauri archive is missing. Run gui\build-embedded.ps1." />
+    <Error Condition="!Exists('$(VeloraEmbeddedNativeResponse)')" Text="The embedded GUI native-link metadata is missing." />
+  </Target>
+</Project>

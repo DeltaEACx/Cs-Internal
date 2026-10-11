@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations"><ProjectConfiguration Include="Release|x64"><Configuration>Release</Configuration><Platform>x64</Platform></ProjectConfiguration></ItemGroup>
+  <PropertyGroup Label="Globals"><ProjectGuid>{C49E1131-C61D-4D37-B26C-5470A7AF29E4}</ProjectGuid><WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion></PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Label="Configuration"><ConfigurationType>DynamicLibrary</ConfigurationType><PlatformToolset Condition="'$(VisualStudioVersion)' &gt;= '18.0'">v145</PlatformToolset><PlatformToolset Condition="'$(VisualStudioVersion)' &lt; '18.0'">v143</PlatformToolset><UseDebugLibraries>false</UseDebugLibraries><CharacterSet>Unicode</CharacterSet></PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <Import Project="..\build\cpp.props" />
+  <PropertyGroup><OutDir>$(ProjectRoot)bin\$(Platform)\$(Configuration)\tests\embedded\</OutDir><VeloraEmbeddedTest>true</VeloraEmbeddedTest></PropertyGroup>
+  <ItemDefinitionGroup><Link><SubSystem>Windows</SubSystem><ModuleDefinitionFile>$(ProjectDir)gui_embedded_probe.def</ModuleDefinitionFile></Link></ItemDefinitionGroup>
+  <ItemGroup><ClCompile Include="gui_embedded_probe.cpp" /><None Include="gui_embedded_probe.def" /></ItemGroup>
+  <Import Project="..\build\embedded_gui.props" />
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+</Project>

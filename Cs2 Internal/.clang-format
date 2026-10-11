@@ -1,0 +1,6 @@
+BasedOnStyle: Microsoft
+ColumnLimit: 120
+IndentWidth: 4
+NamespaceIndentation: All
+SortIncludes: Never
+AllowShortFunctionsOnASingleLine: Empty

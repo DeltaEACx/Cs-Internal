@@ -22,7 +22,7 @@
   <ItemGroup>
     <ClCompile Include="..\tests\visual_enhancements.cpp" />
     <Object Include="$(MainObjectDir)*.obj"
-            Exclude="$(MainObjectDir)dllmain.obj;$(MainObjectDir)overlay.obj;$(MainObjectDir)gui_embedded.obj;$(MainObjectDir)gui_transport.obj;$(MainObjectDir)enhancements.obj;$(MainObjectDir)chams.obj;$(MainObjectDir)chams_materials.obj;$(MainObjectDir)combat_features.obj;$(MainObjectDir)hvh.obj;$(MainObjectDir)spectral_host.obj;$(MainObjectDir)spectral_hud.obj;$(MainObjectDir)aimbot.obj;$(MainObjectDir)autowall.obj;$(MainObjectDir)triggerbot.obj" />
+            Exclude="$(MainObjectDir)dllmain.obj;$(MainObjectDir)overlay.obj;$(MainObjectDir)gui_embedded.obj;$(MainObjectDir)gui_transport.obj;$(MainObjectDir)enhancements.obj;$(MainObjectDir)chams.obj;$(MainObjectDir)chams_materials.obj;$(MainObjectDir)combat_features.obj;$(MainObjectDir)spectral_host.obj;$(MainObjectDir)spectral_hud.obj;$(MainObjectDir)aimbot.obj;$(MainObjectDir)autowall.obj;$(MainObjectDir)triggerbot.obj" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>

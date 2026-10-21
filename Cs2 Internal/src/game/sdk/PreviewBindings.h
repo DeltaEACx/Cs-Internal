@@ -5,10 +5,10 @@
 namespace preview_bindings
 {
     inline constexpr std::string_view kMaterialSha256 =
-        "336abe089468bd5b218f773f09da3942fa9346b7f49f24d9e3591722fc54c5e6";
+        "b4d5c667eb65f13d9193d743a88eb1f9dfa623cc8f745cef764d9977969e38b6";
     inline constexpr std::string_view kRenderSha256 =
-        "321af39487adad1b0f0cfc7e0ad519c5b07937a40e16593fdfd12e1f67da8a56";
-    inline constexpr std::uint32_t kMaterialVtable = 0x129ad0;
+        "34efae18998db8af3e9b9663006a45c3dada8dd34757bce880e27ea853ba51d8";
+    inline constexpr std::uint32_t kMaterialVtable = 0x129AD0;
     inline constexpr std::uint32_t kGetTextureSlot = 16;
     inline constexpr std::uint32_t kColorToken = 0x5963540f; // CUtlStringToken::Make("g_tColor")
     inline constexpr std::uint32_t kRepresentativeToken = 0x5d700411; // Shader's primary color texture.

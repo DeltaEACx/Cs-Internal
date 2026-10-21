@@ -178,7 +178,7 @@ function Copy-UpdaterBuildSources([string]$Root, [string]$Destination) {
 function Get-UpdaterSourceKey([string]$Root) {
     $Root=[IO.Path]::GetFullPath($Root).TrimEnd('\')
     $items=@(Get-UpdaterBuildSourceItems $Root)
-    foreach ($path in @('tools\updater\build-recipes.json','tools\updater\updater_core.ps1','tools\updater\update_build.ps1','tools\updater\pe_audit.cs')) {
+    foreach ($path in @('tools\updater\build-recipes.json','tools\updater\bindings-audit.json','tools\updater\updater_core.ps1','tools\updater\update_build.ps1','tools\updater\pe_audit.cs')) {
         $items+=Get-Item -LiteralPath (Join-Path $Root $path)
     }
     $text=($items | Sort-Object FullName | ForEach-Object { $_.FullName.Substring($Root.Length)+':'+(Get-FileHash -LiteralPath $_.FullName).Hash }) -join '|'
@@ -190,4 +190,69 @@ function Write-UpdaterJson([string]$Path, $Object) {
     $temporary=$Path+'.tmp-'+[Guid]::NewGuid().ToString('N')
     [IO.File]::WriteAllText($temporary,($Object | ConvertTo-Json -Depth 30),[Text.UTF8Encoding]::new($false))
     if ([IO.File]::Exists($Path)) { [IO.File]::Replace($temporary,$Path,[NullString]::Value) } else { [IO.File]::Move($temporary,$Path) }
+}
+
+function Get-DumpSchemaOffset($Value,[string]$Name) {
+    # cs2-dumper emits integers; ExitScam emits { offset, type } records.
+    if ($null -ne $Value -and $null -ne $Value.PSObject.Properties['offset']) { $Value=$Value.offset }
+    $offset=0
+    if ($null -eq $Value -or ![int]::TryParse([string]$Value,[ref]$offset) -or $offset -lt 0 -or $offset -gt 0x100000) {
+        throw ('Missing or invalid schema field '+$Name)
+    }
+    return $offset
+}
+
+function Assert-DumpBuildIdentity($Engine,$Offsets,$Info,[string]$GameRoot) {
+    $rva=$Offsets.'engine2.dll'.dwBuildNumber
+    if ($null -eq $rva -or !$Engine.Contains([uint32]$rva,$false) -or $Engine.Contains([uint32]$rva,$true)) {
+        throw 'Dump build-number storage is outside engine2.dll data'
+    }
+    $initial=$Engine.U32([uint32]$rva)
+    if ($initial -ne [uint32]::MaxValue -and $initial -ne 0) {
+        if ($initial -ne $Info.build_number) { throw 'Dump build number does not match the installed engine2.dll' }
+        return
+    }
+    # The native initializer fills this global at runtime. Its on-disk -1/0 is
+    # not a build number; ExitScam's info uses PatchVersion without periods.
+    $steamInfo=Get-Content -LiteralPath (Join-Path $GameRoot 'csgo\steam.inf') -Raw
+    $patch=[regex]::Match($steamInfo,'(?m)^PatchVersion=(\d+(?:\.\d+){3})\s*$')
+    if (!$patch.Success -or [long]$patch.Groups[1].Value.Replace('.','') -ne $Info.build_number) {
+        throw 'Dump build number does not match the installed steam.inf PatchVersion'
+    }
+}
+
+function Get-UpdatedDumpHeader([string]$Source,$Modules) {
+    # Preserve the curated API: a heap-allocated interface is not a static RVA,
+    # and importing a generated header can silently drop required constants.
+    return [regex]::Replace($Source,'(?s)(namespace\s+(\w+)\s*\{)([^{}]*)(\})',[Text.RegularExpressions.MatchEvaluator]{param($group)
+        $module=$group.Groups[2].Value.Replace('_dll','.dll')
+        $values=$Modules.$module
+        $body=[regex]::Replace($group.Groups[3].Value,'(constexpr\s+std::ptrdiff_t\s+(\w+)\s*=\s*)0x[0-9a-fA-F]+',[Text.RegularExpressions.MatchEvaluator]{param($field)
+            $name=$field.Groups[2].Value;$value=$values.$name
+            if ($null -eq $value -or $value -lt 0 -or $value -gt [uint32]::MaxValue) { throw ('Missing or invalid dumped constant '+$module+'::'+$name) }
+            $field.Groups[1].Value+('0x{0:X}' -f [uint32]$value)
+        })
+        $group.Groups[1].Value+$body+$group.Groups[4].Value
+    })
+}
+
+function Add-VerifiedInterfaceFallbacks($Interfaces,$Proofs,[string]$GameRoot) {
+    foreach ($proof in $Proofs) {
+        $module=$proof.module;$name=$proof.name
+        if ($null -ne $Interfaces.$module.$name) {continue}
+        $path=Join-Path $GameRoot ('bin\win64\'+$module)
+        if (!(Test-Path -LiteralPath $path)) {$path=Join-Path $GameRoot ('csgo\bin\win64\'+$module)}
+        $pe=[PeAudit]::new($path)
+        if ($pe.Hash -cne $proof.module_sha256 -or
+            !$pe.Matches([uint32]$proof.factory_rva,(Convert-HexPattern '488D05????????C3')) -or
+            $pe.Relative([uint32]$proof.factory_rva,3,7) -ne $proof.offset) {
+            throw ('Dump omitted '+$module+'::'+$name+' and its audited factory no longer matches')
+        }
+        if ($null -eq $Interfaces.$module) {$Interfaces | Add-Member -NotePropertyName $module -NotePropertyValue ([pscustomobject]@{})}
+        $Interfaces.$module | Add-Member -NotePropertyName $name -NotePropertyValue $proof.offset
+    }
+}
+
+function Format-CppRvaPair([uint32]$First,[uint32]$Second) {
+    return '{'+('0x{0:X}, 0x{1:X}' -f $First,$Second)+'}'
 }

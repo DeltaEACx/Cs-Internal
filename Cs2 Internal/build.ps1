@@ -14,6 +14,8 @@ $cliBuildProperties = @(
 & $msbuild (Join-Path $PSScriptRoot 'Cs2 Internal.vcxproj') @cliBuildProperties /p:Configuration=Release /p:Platform=x64 /v:minimal /nologo
 if($LASTEXITCODE -ne 0) {throw 'C++ DLL build failed.'}
 if($Test) {
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot 'tests\updater_regression.ps1')
+    if($LASTEXITCODE -ne 0) {throw 'Updater regression failed.'}
     foreach($testName in @('cosmetic_state_regression','visual_enhancements','visual_bones_regression','particle_chams_regression','autowall_probe_regression','spread_prediction_regression','surface_square_regression','penetration_surface_regression','penetration_overlay_regression','hvh_math_regression','hvh_hitboxes_regression','hvh_command_regression','hvh_scan_regression','hvh_scan_native_regression','backtrack_regression','combat_context_regression','movement_regression','movement_native_regression','catalog_regression','runtime_paths_regression','view_settings_regression','native_startup_regression','memory_cache_regression')) {
         & $msbuild (Join-Path $PSScriptRoot ('tests\'+$testName+'.vcxproj')) @cliBuildProperties /p:Configuration=Release /p:Platform=x64 /v:minimal /nologo
         if($LASTEXITCODE -ne 0) {throw ($testName+' build failed.')}

@@ -1,6 +1,7 @@
 #include "features/cosmetics/skin_changer.cpp"
 #include "player_fixture.h"
 #include <iostream>
+#include <fstream>
 namespace
 {
     unsigned precaches = 0, purges = 0, requests = 0, originals = 0;

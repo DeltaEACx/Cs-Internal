@@ -14,21 +14,14 @@ foreach ($module in $audit.modules) {
 }
 $functions=@()
 foreach ($binding in $audit.functions) {
-    if (!$binding.old_entry_matches) { throw ('Audit did not verify '+$binding.name) }
+    if (!$binding.verified -and !$binding.old_entry_matches) { throw ('Audit did not verify '+$binding.name) }
     $rva=[Convert]::ToUInt32($binding.target_rva.Substring(2),16)
-    $fingerprint=Get-Fingerprint $images[$binding.module] $rva $analyzer
+    $fingerprint=Get-Fingerprint $images[$binding.module] $rva $analyzer ([int]$binding.explicit_length)
     if ($fingerprint.match_offset -ne 0 -or !(Test-Fingerprint $images[$binding.module].pe $rva $fingerprint)) { throw ('Invalid function identity: '+$binding.name) }
-    $functions+=[pscustomobject]@{ name=$binding.name; module=$binding.module; header=('src\game\sdk\'+$binding.header); fingerprint=$fingerprint; links=@() }
+    $header='';if ($binding.header) {$header='src\game\sdk\'+$binding.header}
+    $functions+=[pscustomobject]@{ name=$binding.name; module=$binding.module; header=$header; fingerprint=$fingerprint; links=@() }
 }
-foreach ($auxiliary in @(
-    @{name='EconomyGetter';rva=0x119A750;length=0xA0},
-    @{name='SchemaConstructor';rva=0x8377C0;length=0},
-    @{name='LightCaller';rva=0xB2616D;length=0},
-    @{name='CompositeCaller';rva=0x803387;length=0}
-)) {
-    $fingerprint=Get-Fingerprint $images['client.dll'] $auxiliary.rva $analyzer $auxiliary.length
-    $functions+=[pscustomobject]@{name=$auxiliary.name;module='client.dll';header='';fingerprint=$fingerprint;links=@()}
-}
+if (!@($audit.vtables).Count -or !@($audit.references).Count) { throw 'Audit must include reviewed vtables and global references; historical RVAs cannot be reused' }
 # Preserve known call/branch relationships, including split .pdata chunks.
 foreach ($function in $functions) {
     $decode=Get-Decode $images[$function.module] $function.fingerprint.rva $function.fingerprint.length $analyzer
@@ -59,19 +52,8 @@ $profile=[pscustomobject]@{
         @{module='tier0.dll';name='?Purge@CBufferString@@QEAAXH@Z'},
         @{module='tier0.dll';name='CreateInterface'}, @{module='resourcesystem.dll';name='CreateInterface'}
     )
-    vtables=@(
-        @{type='.?AVCSource2Client@@';module='client.dll';file='src\game\sdk\EconBindings.h';constant='kClientVtableRva';slot=36;function='FrameStageNotify'},
-        @{type='.?AVCCStrike15ItemSchema@@';module='client.dll';file='src\game\sdk\EconBindings.h';constant='kSchemaVtableRva';slot=-1;function=''},
-        @{type='.?AVCCStrike15ItemSystem@@';module='client.dll';file='src\game\sdk\EconBindings.h';constant='kSystemVtableRva';slot=-1;function=''},
-        @{type='.?AVCMaterial2@@';module='materialsystem2.dll';file='src\game\sdk\PreviewBindings.h';constant='kMaterialVtable';slot=16;function='GetTexture'},
-        @{type='.?AVCAnimatableSceneObjectDesc@@';module='scenesystem.dll';file='src\game\sdk\ChamsBindings.h';constant='';slot=4;function='kGeneratePrimitives'},
-        @{type='.?AVCBaseSceneObjectDesc@@';module='scenesystem.dll';file='src\game\sdk\ChamsBindings.h';constant='';slot=4;function='kGeneratePrimitives'}
-    )
-    references=@(
-        @{function='SetModel';offset=12;operand=3;length=7;file='src\game\sdk\SkinBindings.h';constant='kModelSystemPointerRva'},
-        @{function='ThirdPerson';offset=36;operand=3;length=7;file='src\game\sdk\ViewBindings.h';constant='kInputPointer'},
-        @{function='LightCaller';offset=(0xB2616D-($functions|Where-Object name -eq 'LightCaller').fingerprint.rva);operand=3;length=7;file='src\game\sdk\VisualBindings.h';constant='lightManager'}
-    )
+    vtables=$audit.vtables
+    references=$audit.references
     schema_fields=$audit.schema_fields
 }
 Write-UpdaterJson (Join-Path $PSScriptRoot 'build-recipes.json') $profile

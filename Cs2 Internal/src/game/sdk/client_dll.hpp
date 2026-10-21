@@ -1,4 +1,4 @@
-// Curated schema offsets verified in the installed client on 2026-10-11.
+// Curated schema offsets verified in the installed client on 2026-10-21.
 // All 39 skin fields were verified against the supported client build.
 #pragma once
 #include <cstddef>
@@ -26,7 +26,7 @@ namespace cs2_dumper::schemas::client_dll
     {
         constexpr std::ptrdiff_t m_bNeedToReApplyGloves = 0x176D; // bool
         constexpr std::ptrdiff_t m_EconGloves = 0x1770;           // C_EconItemView
-        constexpr std::ptrdiff_t m_hHudModelArms = 0x1DA8;        // CHandle<C_CS2HudModelArms>
+        constexpr std::ptrdiff_t m_hHudModelArms = 0x1DA4;        // CHandle<C_CS2HudModelArms>
     } // namespace C_CSPlayerPawn
     namespace C_EconEntity
     {

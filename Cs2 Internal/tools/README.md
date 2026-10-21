@@ -27,3 +27,19 @@ powershell -NoProfile -File tools/updater/seed_build_recipes.ps1 -ReportPath "pa
 
 The report's module hashes must match the installed DLLs before any recipes are
 written.
+
+The current audit is `updater/bindings-audit.json` (2026-10-21, client version
+2000934). It includes auxiliary functions, vtable slots and global references;
+recipe seeding reads these from the report instead of reusing historical RVAs.
+After building the analyzer, reproduce its recipes from the project directory:
+
+```powershell
+powershell -NoProfile -File tools/updater/seed_build_recipes.ps1 -ReportPath tools/updater/bindings-audit.json
+```
+
+The updater accepts integer schema fields and ExitScam `{ offset, type }` fields.
+It validates runtime-initialized build-number storage against `steam.inf`, derives
+the game-rules global from its validated signature, and preserves the curated
+headers. An interface omitted by a dump is recovered only while its audited
+module hash and singleton factory still match. `build.ps1 -Test` also runs
+`tests/updater_regression.ps1`.

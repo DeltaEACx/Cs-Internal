@@ -1,4 +1,11 @@
 Cs2 HVH Source, please fork and star!
+
+Bindings were audited on 2026-10-21 against the installed client version 2000934
+(patch 1.41.9.1). The update covers 38 native functions, 53 signatures, 39 curated
+schema fields, 32 offsets and 111 static interfaces. See
+[`tools/updater/bindings-audit.json`](tools/updater/bindings-audit.json) for the
+module hashes, resolved addresses and reviewed layout changes. Runtime hash and
+function-entry checks remain enabled. Live gameplay requires separate validation.
 Current issue's:
 Movement
 Lag with ragebot (sometimes?)

@@ -154,9 +154,7 @@ try {
     $offsets=Get-Content -LiteralPath (Join-Path $output 'offsets.json') -Raw | ConvertFrom-Json
     $interfaces=Get-Content -LiteralPath (Join-Path $output 'interfaces.json') -Raw | ConvertFrom-Json
     $classes=(Get-Content -LiteralPath (Join-Path $output 'client_dll.json') -Raw | ConvertFrom-Json).'client.dll'.classes
-    $buildRva=$offsets.'engine2.dll'.dwBuildNumber
-    if ($null -eq $buildRva -or !$images['engine2.dll'].pe.Contains([uint32]$buildRva,$false) -or
-        $images['engine2.dll'].pe.U32([uint32]$buildRva) -ne $info.build_number) { throw 'Dump build number does not match the installed engine2.dll' }
+    Assert-DumpBuildIdentity $images['engine2.dll'].pe $offsets $info $gameRoot
     foreach ($module in @('client.dll','engine2.dll','inputsystem.dll','matchmaking.dll','soundsystem.dll')) {
         if ($null -eq $offsets.$module) { throw ('Dumper omitted offsets for '+$module) }
     }
@@ -235,7 +233,7 @@ try {
         $file='src\game\sdk\ChamsBindings.h';$source=$plan[$file]
         $expression='(kModelDescriptorVtables\s*)\{[^}]*\}'
         if ([regex]::Matches($source,$expression).Count -ne 1) { throw 'Scene descriptor table declaration changed' }
-        $plan[$file]=[regex]::Replace($source,$expression,[Text.RegularExpressions.MatchEvaluator]{param($match) $match.Groups[1].Value+('{0x{0:X}, 0x{1:X}}' -f $first,$second)})
+        $plan[$file]=[regex]::Replace($source,$expression,[Text.RegularExpressions.MatchEvaluator]{param($match) $match.Groups[1].Value+(Format-CppRvaPair $first $second)})
     } catch { Add-UpdateFailure 'Economy/scene layout' $_.Exception.Message }
     $patternResults=@()
     foreach ($binding in $profile.patterns) {
@@ -274,8 +272,8 @@ try {
         $source=[regex]::Replace($source,'(?s)(namespace\s+(\w+)\s*\{)([^{}]*)(\})',[Text.RegularExpressions.MatchEvaluator]{param($group)
             $class=$group.Groups[2].Value
             $body=[regex]::Replace($group.Groups[3].Value,'(constexpr\s+std::ptrdiff_t\s+(\w+)\s*=\s*)(0x[0-9a-fA-F]+)',[Text.RegularExpressions.MatchEvaluator]{param($field)
-                $name=$field.Groups[2].Value;$value=$classes.$class.fields.$name
-                if ($null -eq $value -or $value -lt 0 -or $value -gt 0x100000) { throw ('Missing or invalid schema field '+$class+'::'+$name) }
+                $name=$field.Groups[2].Value
+                $value=Get-DumpSchemaOffset $classes.$class.fields.$name ($class+'::'+$name)
                 $seen[$class+'::'+$name]=$true
                 $field.Groups[1].Value+('0x{0:X}' -f $value)
             })
@@ -283,8 +281,22 @@ try {
         })
         foreach ($name in $expected.Keys) { if (!$seen.ContainsKey($name)) { throw ('Curated schema field disappeared: '+$name) } }
         $plan[$file]=$source
-        $plan['src\game\sdk\offsets.hpp']=Get-Content -LiteralPath (Join-Path $output 'offsets.hpp') -Raw
-        $plan['src\game\sdk\interfaces.hpp']=Get-Content -LiteralPath (Join-Path $output 'interfaces.hpp') -Raw
+        $rules=@($patternResults | Where-Object {$_.expression -ceq 'client.dll:488B0D*????????4C897010'})
+        if ($rules.Count -ne 1) { throw 'Game-rules global was not independently validated' }
+        $offsets.'client.dll'.dwGameRules=$rules[0].target_rva
+        if ($null -eq $offsets.'engine2.dll'.dwNetworkGameClient_isBackgroundMap) {
+            $pe=$images['engine2.dll'].pe
+            $hits=$pe.Find((Convert-HexPattern '0FB681????????C3CCCCCCCCCCCCCCCC0FB681????????C3CCCCCCCCCCCCCCCC4883EC'),$true)
+            if ($hits.Count -ne 1) { throw 'Background-map getter was not uniquely identified' }
+            $offsets.'engine2.dll' | Add-Member -NotePropertyName dwNetworkGameClient_isBackgroundMap -NotePropertyValue $pe.U32($hits[0]+3)
+        }
+        $interfaceProofs=(Get-Content -LiteralPath (Join-Path $PSScriptRoot 'bindings-audit.json') -Raw | ConvertFrom-Json).interface_proofs
+        Add-VerifiedInterfaceFallbacks $interfaces $interfaceProofs $gameRoot
+        foreach ($kind in @('offsets','interfaces')) {
+            $file='src\game\sdk\'+$kind+'.hpp'
+            $values=$offsets;if ($kind -eq 'interfaces') {$values=$interfaces}
+            $plan[$file]=Get-UpdatedDumpHeader (Get-Content -LiteralPath (Join-Path $RepositoryRoot $file) -Raw) $values
+        }
     } catch { Add-UpdateFailure 'Dumper schema/header validation' $_.Exception.Message }
     $report=[pscustomobject]@{version=1;state='validated';updated=[DateTime]::UtcNow.ToString('o');module_key=$moduleKey;source_key=$sourceKey;build_number=$info.build_number;dump=$output;functions=$resolved;signatures=$patternResults;failures=@($failures.ToArray())}
     if ($failures.Count) { $report.state='review_required';Write-UpdaterJson $reportPath $report;Set-UpdateStatus 'review_required' ('Automatic update needs review: '+$failures.Count+' binding(s) unresolved. See the report.');exit 2 }

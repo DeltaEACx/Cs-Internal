@@ -476,7 +476,7 @@ void report_hit(std::uintptr_t message);
 
 namespace patterns {
 inline constexpr std::string_view draw_skybox_array = "scenesystem.dll:4585C90F8E????????4C8BDC";
-inline constexpr std::string_view frame_stage_notify = "client.dll:48895C241848896C2420574883EC40488BF933ED488B8960";
+inline constexpr std::string_view frame_stage_notify = "client.dll:48895C241848896C2420574883EC40488BF933ED488B89B0040000";
 inline constexpr std::string_view game_event_get_controller = "client.dll:488D05*????????4D8BF8488901+80~";
 inline constexpr std::string_view game_event_get_float = "client.dll:>E8????????0F28D8895C2420";
 inline constexpr std::string_view game_event_get_int = "client.dll:>E8????????3D00800000";
@@ -495,7 +495,7 @@ inline constexpr std::string_view level_shutdown = "client.dll:4883EC??488B0D???
 inline constexpr std::string_view light_scene_object = "scenesystem.dll:>E8????????440F285C2460";
 inline constexpr std::string_view material_create = "materialsystem2.dll:48895C24??48896C24??48897424??48897C24??41564881EC????????488B05????????488BF2";
 // CCSUsrMsg_ReportHit vtable reference, audited for the pinned client build.
-inline constexpr std::string_view parse_report_hit = "client.dll:48895C24184889742420574883EC20488D05B24259018BF2488901488BD9";
+inline constexpr std::string_view parse_report_hit = "client.dll:48895C24184889742420574883EC20488D05329F59018BF2488901488BD9";
 inline constexpr std::string_view particle_create_effect = "client.dll:4C8BDC534881EC90000000F20F1005????????488BDA488B8424C000000033D2";
 inline constexpr std::string_view particle_destroy_effect = "client.dll:83FAFF0F84????????4154415641574883EC??48895C24??";
 inline constexpr std::string_view particle_manager = "client.dll:488B35*????????44896C24??4C896C24??C74424??C80000C0";

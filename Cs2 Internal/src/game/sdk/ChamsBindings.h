@@ -3,9 +3,9 @@
 
 namespace chams_bindings
 {
-    inline constexpr std::string_view kSceneSha256 = "040eb851fa7875523346b890f1ed6e158abc59e08bccbd8dc60539435277efa5";
-    inline constexpr std::string_view kMaterialSha256 = "b4d5c667eb65f13d9193d743a88eb1f9dfa623cc8f745cef764d9977969e38b6";
-    inline constexpr std::string_view kTier0Sha256 = "990ea56bf1626d299ba54b64b423f2e409bd592bb737c7a5edf7972ad5c7143e";
+    inline constexpr std::string_view kSceneSha256 = "0f17ccdc083290a496e6ac13e4fe54413077ad2b83b7dfd281749cffd2733d9b";
+    inline constexpr std::string_view kMaterialSha256 = "2fe9750177006c24aacd0f86b14efbc00d04ca61d86f27f1b07b263eefb06d69";
+    inline constexpr std::string_view kTier0Sha256 = "f96f4f9666be66ee3dd42a015b305d954b5dd5582b0608a74e50548df426584d";
     // CAnimatableSceneObjectDesc and CBaseSceneObjectDesc share this method.
     // CSceneObjectDesc's static-mesh method does not receive player/viewmodel draws.
     inline constexpr skin_bindings::Function kGeneratePrimitives{0x7D7C0u, {0x48, 0x8B, 0xC4, 0x48, 0x89, 0x58, 0x20, 0x4C, 0x89, 0x40, 0x18, 0x48, 0x89, 0x50, 0x10, 0x48, 0x89, 0x48, 0x08, 0x55, 0x56, 0x57, 0x41, 0x54}};

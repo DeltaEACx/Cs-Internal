@@ -1,0 +1,140 @@
+{
+    "version":  1,
+    "verified_at":  "2026-10-25T19:21:14.4086790+00:00",
+    "state":  "verified_unchanged",
+    "recipe_audited":  "2026-10-25",
+    "modules":  [
+                    {
+                        "name":  "client.dll",
+                        "sha256":  "ccaf4e4926babc052994502b19ec61198a11008a39dce712921b93dd993be9f5",
+                        "matches_audited":  true
+                    },
+                    {
+                        "name":  "engine2.dll",
+                        "sha256":  "e8533af07adc3426eac95391cb70804a0a27f8391c03d36f1cfa06f50d901d29",
+                        "matches_audited":  true
+                    },
+                    {
+                        "name":  "inputsystem.dll",
+                        "sha256":  "a74a4ac1906f6d1fc5e7180b6615b9f11cbd14457a323038c7c47f81a0aef52a",
+                        "matches_audited":  true
+                    },
+                    {
+                        "name":  "matchmaking.dll",
+                        "sha256":  "aa7553299fe6e053a535b798280db32d7c0e7e9d49651adaca9393b1d3998e2f",
+                        "matches_audited":  true
+                    },
+                    {
+                        "name":  "materialsystem2.dll",
+                        "sha256":  "2fe9750177006c24aacd0f86b14efbc00d04ca61d86f27f1b07b263eefb06d69",
+                        "matches_audited":  true
+                    },
+                    {
+                        "name":  "meshsystem.dll",
+                        "sha256":  "e81beee25e94456b88b0af426c9bb4d0ee6ae2eba8cf303a205b4e4c9da98643",
+                        "matches_audited":  true
+                    },
+                    {
+                        "name":  "rendersystemdx11.dll",
+                        "sha256":  "fbd28df3458e1f5d0a21ff03c2c25e63a372063098dc4f455b07b80b3473eb8f",
+                        "matches_audited":  true
+                    },
+                    {
+                        "name":  "resourcesystem.dll",
+                        "sha256":  "29d503822278305b197c5d4c299b77961f6c5b9c0ab989dae81723c8546fa75f",
+                        "matches_audited":  true
+                    },
+                    {
+                        "name":  "scenesystem.dll",
+                        "sha256":  "0f17ccdc083290a496e6ac13e4fe54413077ad2b83b7dfd281749cffd2733d9b",
+                        "matches_audited":  true
+                    },
+                    {
+                        "name":  "soundsystem.dll",
+                        "sha256":  "d11169711d97a3e7641b1c277cf22076559fd3b754408bb169b2873a7039dfe2",
+                        "matches_audited":  true
+                    },
+                    {
+                        "name":  "tier0.dll",
+                        "sha256":  "f96f4f9666be66ee3dd42a015b305d954b5dd5582b0608a74e50548df426584d",
+                        "matches_audited":  true
+                    }
+                ],
+    "summary":  [
+                    {
+                        "kind":  "module",
+                        "checked":  8,
+                        "passed":  8
+                    },
+                    {
+                        "kind":  "source_module_hash",
+                        "checked":  17,
+                        "passed":  17
+                    },
+                    {
+                        "kind":  "function",
+                        "checked":  38,
+                        "passed":  38
+                    },
+                    {
+                        "kind":  "signature",
+                        "checked":  53,
+                        "passed":  53
+                    },
+                    {
+                        "kind":  "vtable",
+                        "checked":  6,
+                        "passed":  6
+                    },
+                    {
+                        "kind":  "global_reference",
+                        "checked":  6,
+                        "passed":  6
+                    },
+                    {
+                        "kind":  "export",
+                        "checked":  5,
+                        "passed":  5
+                    },
+                    {
+                        "kind":  "schema_field",
+                        "checked":  39,
+                        "passed":  39
+                    },
+                    {
+                        "kind":  "offset_declaration",
+                        "checked":  32,
+                        "passed":  32
+                    },
+                    {
+                        "kind":  "offset_module",
+                        "checked":  3,
+                        "passed":  3
+                    },
+                    {
+                        "kind":  "offset_locator",
+                        "checked":  28,
+                        "passed":  28
+                    }
+                ],
+    "failures":  [
+
+                 ],
+    "ida":  {
+                "state":  "not_requested"
+            },
+    "binding_changes":  [
+
+                        ],
+    "live_gameplay_validated":  false,
+    "build_number":  14192,
+    "patch_version":  "1.41.9.2",
+    "validation":  {
+                       "native_compilation":  "Release/x64 ClCompile passed",
+                       "updater_regression_checks":  20,
+                       "native_startup_regression":  "passed",
+                       "cosmetic_state_regression":  "passed",
+                       "interface_singleton_factories":  111,
+                       "class_owned_schema_fields":  39
+                   }
+}

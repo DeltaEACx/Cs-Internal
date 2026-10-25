@@ -3,6 +3,17 @@ This is not a good source for HVH
 Cs2 INT Source, please fork and star!
 ps: this is a vibecoded project using parts of Velocity! I do not need / want credits for this.
 
+## CS2 1.41.9.2 / build 14192 update
+
+Updated on **2026-10-25** for client **2000935**, Source revision **11162119**.
+Refreshes module hashes, function addresses and entry bytes, vtables, global
+references, offsets, interfaces, and schema metadata. Stale runtime bindings
+could allow the menu to open while gameplay features remained disabled.
+
+The focused update passes **235 installed-binary and source-binding checks**.
+Runtime compatibility checks remain enabled. Restart CS2 before loading a newly
+built DLL. Live gameplay verification is still pending.
+
 Current issue:
 Movement
 Lag with ragebot

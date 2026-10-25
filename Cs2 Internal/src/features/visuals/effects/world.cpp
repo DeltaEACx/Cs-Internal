@@ -24,11 +24,11 @@ constexpr std::array presets{
     skybox_entry{"Portrait","materials/custom/skybox/portrait_sky.vtex"},
     skybox_entry{"Crimson Dawn","materials/custom/skybox/crimson_dawn_sky.vtex",true,&crimson_dawn_lighting}
 };
-constexpr std::string_view scene_hash="040eb851fa7875523346b890f1ed6e158abc59e08bccbd8dc60539435277efa5";
-constexpr std::string_view resource_hash="0004439e37b6ffd5a37683f9f288726584be2a3b4ccc6674af8303cde0343027";
-constexpr std::string_view material_hash="b4d5c667eb65f13d9193d743a88eb1f9dfa623cc8f745cef764d9977969e38b6";
-constexpr std::string_view tier0_hash="990ea56bf1626d299ba54b64b423f2e409bd592bb737c7a5edf7972ad5c7143e";
-constexpr std::string_view engine_hash="6456df18d8f954394024c2c07da8c848df15a5ace74ce7390d78970ceb39ee21";
+constexpr std::string_view scene_hash="0f17ccdc083290a496e6ac13e4fe54413077ad2b83b7dfd281749cffd2733d9b";
+constexpr std::string_view resource_hash="29d503822278305b197c5d4c299b77961f6c5b9c0ab989dae81723c8546fa75f";
+constexpr std::string_view material_hash="2fe9750177006c24aacd0f86b14efbc00d04ca61d86f27f1b07b263eefb06d69";
+constexpr std::string_view tier0_hash="f96f4f9666be66ee3dd42a015b305d954b5dd5582b0608a74e50548df426584d";
+constexpr std::string_view engine_hash="e8533af07adc3426eac95391cb70804a0a27f8391c03d36f1cfa06f50d901d29";
 constexpr std::uint32_t gradient_fog=0x4B01FF63,gradient_fog_2=0x0AA49C2A,gradient_fog_3=0xFBF6448D;
 constexpr std::uint32_t enable_gradient_fog=0x6E0FAD7E;
 

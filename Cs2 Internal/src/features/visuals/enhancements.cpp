@@ -271,7 +271,7 @@ namespace visuals::enhancements
             const auto bind=[&](const skin_bindings::Function &fn){std::array<std::uint8_t,24> bytes{};return memory::copy(bytes.data(),base+fn.rva,bytes.size())&&bytes==fn.entry?base+fn.rva:0;};
             lightAlloc=bind(visual_bindings::lightAlloc);lightTime=bind(visual_bindings::lightTime);
         }
-        if(ready && game::module_matches("tier0.dll","990ea56bf1626d299ba54b64b423f2e409bd592bb737c7a5edf7972ad5c7143e"))
+        if(ready && game::module_matches("tier0.dll","f96f4f9666be66ee3dd42a015b305d954b5dd5582b0608a74e50548df426584d"))
         {
             const auto create=reinterpret_cast<void*(*)(const char*,int*)>(GetProcAddress(GetModuleHandleA("tier0.dll"),"CreateInterface"));
             if(create)cvarSystem=reinterpret_cast<Address>(create("VEngineCvar007",nullptr));

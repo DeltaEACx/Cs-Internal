@@ -495,7 +495,7 @@ inline constexpr std::string_view level_shutdown = "client.dll:4883EC??488B0D???
 inline constexpr std::string_view light_scene_object = "scenesystem.dll:>E8????????440F285C2460";
 inline constexpr std::string_view material_create = "materialsystem2.dll:48895C24??48896C24??48897424??48897C24??41564881EC????????488B05????????488BF2";
 // CCSUsrMsg_ReportHit vtable reference, audited for the pinned client build.
-inline constexpr std::string_view parse_report_hit = "client.dll:48895C24184889742420574883EC20488D05329F59018BF2488901488BD9";
+inline constexpr std::string_view parse_report_hit = "client.dll:48895C24184889742420574883EC20488D05A28259018BF2488901488BD9";
 inline constexpr std::string_view particle_create_effect = "client.dll:4C8BDC534881EC90000000F20F1005????????488BDA488B8424C000000033D2";
 inline constexpr std::string_view particle_destroy_effect = "client.dll:83FAFF0F84????????4154415641574883EC??48895C24??";
 inline constexpr std::string_view particle_manager = "client.dll:488B35*????????44896C24??4C896C24??C74424??C80000C0";

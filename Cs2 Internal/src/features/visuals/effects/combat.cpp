@@ -8,8 +8,8 @@
 namespace custom::combat {
 namespace {
 using particles::effect_kind;
-constexpr std::string_view scene_hash="040eb851fa7875523346b890f1ed6e158abc59e08bccbd8dc60539435277efa5";
-constexpr std::string_view engine_hash="6456df18d8f954394024c2c07da8c848df15a5ace74ce7390d78970ceb39ee21";
+constexpr std::string_view scene_hash="0f17ccdc083290a496e6ac13e4fe54413077ad2b83b7dfd281749cffd2733d9b";
+constexpr std::string_view engine_hash="e8533af07adc3426eac95391cb70804a0a27f8391c03d36f1cfa06f50d901d29";
 constexpr std::array names{"player_death","bullet_impact","player_hurt","player_spawned",
     "player_jump","weapon_reload","round_end","round_start","weapon_fire"};
 struct listener {
